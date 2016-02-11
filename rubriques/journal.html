@@ -1,0 +1,46 @@
+<div ng-include="'Rubriques/Onglets.html'"></div>
+
+<div id='divJournal'>
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <td ng-repeat="champ in champsJournal">
+                <a ng-click="$parent.sortType = champ.champ; $parent.sortReverse = !($parent.sortReverse)">
+                    {{ champ.label }}
+                    <span ng-show="$parent.sortType == champ.champ && !($parent.sortReverse)"
+                          class="fa fa-caret-down"></span>
+                    <span ng-show="$parent.sortType == champ.champ && $parent.sortReverse"
+                          class="fa fa-caret-up"></span>
+                </a>
+            </td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="activite in journal | orderBy:sortType:sortReverse | filter:searchCommande ">
+            <td>
+                {{ activite.user.nom}}
+            </td>
+            <td>
+                {{ activite.date_creation}}
+            </td>
+            <td>
+                {{ activite.id_com}}
+            </td>
+            <td>
+                {{ activite.id_ordre}}
+            </td>
+            <td>
+                {{ activite.ref}}
+            </td>
+             <td>
+                {{ activite.quantite}}
+            </td>
+            <td>
+                {{ activite.activite}}
+            </td>
+        </tr>
+        </tbody>
+
+    </table>
+
+</div>

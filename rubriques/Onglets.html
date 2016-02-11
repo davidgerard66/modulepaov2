@@ -1,0 +1,91 @@
+<h2>ED Production Manager > Vous êtes connecté en tant que <span style='color:green'>{{User.Nom}}</span> </h2>
+
+    <ul id="menuTabs" class="nav nav-tabs">
+        <li ng-repeat = "onglet in Onglets" ng-class="{'active': onglet.Route == url}">
+
+            <a href="#{{onglet.Route}}" style="float:left" title="{{onglet.Title}}">
+                {{onglet.Label}}
+                <span><!---todo nb ligne --></span>
+                
+                
+                <i ng-if="!onglet.Closable" style="margin-left:10px;" class="glyphicon glyphicon-refresh" onclick='location.reload();'></i>
+               
+               
+            </a> 
+            <i  ng-if="onglet.Closable" style='margin-left:-17px;margin-top:-4px;' class='glyphicon glyphicon-remove-circle' ng-click="fermeOnglet($index)"></i>
+        </li>
+    </ul>
+
+    <div id='loaderGrille' ng-show="$parent.isLoading"></div>
+    <!-- form recherche generale sur tout -->
+    <div ng-show="$parent.champRecherche!=false" style="margin-top:12px;">
+        <div class="row">
+        
+        	<div class='col-lg-2'>
+        <form>
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon"><i class="fa fa-search"></i></div>
+                    <input type="text" class="form-control"
+                           placeholder="numéro, nom, email..."
+                           ng-model="$parent.searchCommande">
+                </div>
+                
+            </div>
+        </form>
+        	</div>
+            
+            <div class='col-lg-7'>
+       
+<form class="form-inline">
+            
+  <div class="form-group">
+     <div class="input-group">
+                  <div class="input-group-addon "><i class="glyphicon glyphicon-calendar"></i></div>
+	    <input type="datetime"  class="form-control " id="jobDateDebut" ng-model="jobDateDebut" datepicker placeholder="Jobs du ... [ jj/mm/aaaa ]  "/>
+        </div>
+  </div>
+  <div class="form-group">
+  
+  <div class="input-group">
+                  <div class="input-group-addon "><i class="glyphicon glyphicon-calendar"></i></div>
+    	
+	  <input  class="form-control" type="datetime" id="jobDateFin" ng-model="jobDateFin" datepicker placeholder="au ... [ jj/mm/aaaa ] " /> 
+        </div>
+  </div>
+  
+   <div class="form-group">
+  
+
+   <button type="submit" class="btn btn-md" ng-click="isFiltrerParDate=true;LoadImprimerie(jobDateDebut,jobDateFin);">Filtrer par date</button>
+ 
+  
+ 
+  </div>
+     <div class="form-group">
+  
+
+   <button type="submit" class="btn btn-warning btn-md" ng-show="isFiltrerParDate" ng-click="jobDateDebut='';jobDateFin='';isFiltrerParDate=false;LoadImprimerie();">R.A.Z dates</button>
+ 
+  
+ 
+  </div>
+</form>
+                      
+            </div>
+            
+            
+            <div class='col-lg-3'>
+                      <ul class='list-inline list-unstyled'>
+                              <li style='width:140px;'> 
+                                   <a class='btn btn-warning' 
+                                   ng-if="(filteredJobs.length < productionOrders.length) || searchCommande!=''" 
+                                   ng-click="supprimerFiltres()">
+                                   <i class='glyphicon glyphicon-remove'></i> Supprimer les filtres</a>
+                              </li>
+                      </ul>
+             </div>
+        
+        </div>
+    </div>
+ 

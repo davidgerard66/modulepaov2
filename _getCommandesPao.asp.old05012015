@@ -1,0 +1,78 @@
+<%@LANGUAGE="VBSCRIPT" codepage="65001" %>
+<!--#include virtual="ed/_commonfunction.asp" -->
+<%
+response.ContentType = "application/json"
+
+
+refs =",'M089-R','M089-V','M089-O','M089-M','M05-001','M05-003','M05-006-V','M05-006-S','M05-006-W','M07-000-B','M07-000-L','M07-000-G','M07-000-R','M07-001','MM07-001','MI07-001','MD07-001','ML07-001','MS07-001','MR07-001','MP07-001'"
+
+			function v(champ) ' je gagne du temps et de la l
+				v = renvoi(rs,champ)
+			end function
+
+sql = "select  c.id_com,c.id_com_web,rtrim(c.groupe_canal) as groupe_canal,rtrim(c.groupe_priorite) as groupe_priorite,c.date_statut,rtrim(c.nom) as nom, rtrim(c.prenom)as prenom,c.assigner_user, rtrim(cli.email) as email, rtrim(cl.ref) as service, rtrim(i.statut) as statut_bat, i.date_CREATION as date_bat, u.prenom as userNom from commandes as c with (NOLOCK) "
+sql = sql & " inner join clients cli on c.id_client = cli.id_client "
+sql  = sql & " inner join (select id_com,cl.ref from commandes_lignes cl left outer join hotfolders h on cl.ref = h.ref where  cl.ref in ('NCONTROLE','MCONTROLE','ZEN','MBAT'" & refs & ") or (cl.ref like 'mc%' or cl.ref like 'mt%' or cl.ref like 'mn%') or h.indigonew like '%derpro%' group by id_com,cl.ref ) as cl on cl.id_com = c.id_com"
+sql = sql & " left outer join utilisateurs u on u.id_user = c.assigner_user"
+sql = sql & " LEFT OUTER JOIN Impression_statut i ON i.id_com = c.id_com AND i.id_enr =( SELECT MAX(id_enr) FROM impression_statut i2 WHERE i2.id_com = c.id_com )"
+
+	select case ucase(request.querystring("statut_bat"))
+	
+		case "NEW"
+			sql = sql & " where c.groupe_canal = 'PART' and c.statut_commande = 'confirme' and i.statut is null "
+	
+		case "BAT"
+			sql = sql & " where c.groupe_canal = 'PART' and c.statut_commande = 'confirme' and i.statut = 'BAT'"
+			
+	end select
+
+sql = sql & " order by c.id_com desc,service desc "
+
+'response.write("<h3>"&sql&"</h3>")
+
+ouvrirtable mm_frans_string, rs, sql
+ctr=0
+id_com_en_cours=""
+		while not rs.eof
+			 
+			 ' anti doublon
+			 if instr(id_com_en_cours,v("id_com"))<1 then
+			 
+			 
+			 		if ctr>0 then commande = commande & ","
+			 commande = commande & "{"
+			 
+			 	if v("assigner_user") = "" then
+				        assignation = "Non assigné" 
+				        else 
+						assignation = v("userNom")
+						end if
+			    
+				date_confirmation = right(v("date_statut"),4) &"-"& mid(v("date_statut"),4,2) &"-"& left(v("date_statut"),2)
+			 
+			  
+				if v("statut_bat") = "" then
+						statut_bat = "A préparer" 
+				        else 
+						statut_bat = v("statut_bat") & " le " & v("date_bat")
+						end if
+					
+					
+			 
+				 commande = commande & """Id_com"": "&v("id_com")&", ""Id_web"": "&v("id_com_web")&", ""Canal"": """& v("groupe_canal") &""", ""Confirmation"": """& date_confirmation &""", ""Option"": """& v("service")&""", ""Priorité"": """& v("groupe_priorite")&""", ""Nom"": """& v("Nom prenom")&""", ""Email"": """& v("Email")&""", ""BAT"": """&statut_bat&""", ""Assignation"": """& assignation &""""
+				 commande = commande & "}"
+				 id_com_en_cours = id_com_en_cours & "-" & v("id_com")
+				 dernier_service = v("service")
+			 end if
+			 
+		ctr=ctr+1
+		rs.movenext
+		wend
+
+fermertable rs
+commande = "[" & commande & "]"
+
+
+response.write(commande)
+
+%>

@@ -1,0 +1,112 @@
+@charset "utf-8";
+/* CSS Document */
+
+        body { padding-top:50px; }
+		h1 { text-transform:uppercase}
+		.form-control  {font-size:16px !important; letter-spacing:-1px;}
+		label { font-size:14px; font-weight: normal;}
+		i { cursor:pointer}
+		#loaderGrille {
+			position:absolute;
+			z-index:10000;
+			width:100%;
+			height:830px;
+			text-align:center;
+			margin:auto;
+
+				background:url(loader.png);
+				background-position:top center;
+				background-repeat:no-repeat;
+			background-color: #f4f4f4;
+
+			opacity: 0.95;
+		}
+		a:hover{cursor:pointer;}
+		.divcommande {
+			border:1px solid #e2e2e2;
+		}
+.puceImprimerie {
+	position:absolute; margin-left:80px; height:20px;width:20px;padding:2px;line-height:16px; text-align:center; margin-top:-15px;
+	}		
+.droptarget {
+	background-color:red !important;
+	color:white;
+	
+	}
+.droptarget_actif {
+	background-color:#CC0;
+	
+	}
+.alerte, .alerte TD{
+	background-color:#F47C3C !important}
+.imprimante{
+	padding:10px; margin-top:20px;border:2px dotted #e2e2e2;font-size:30px; text-align:center;
+	 background-color:#F7F7F7;
+	 opacity:0.6;
+	}
+
+.imprimante p{
+	 text-align:left;
+	
+	}
+.imprimante:hover{
+	border:2px solid #666;cursor:pointer;
+	}		
+.imprimanteSelectionne{
+	border:6px solid green !important;
+	background-color:#EDFCE2;
+	 opacity:1;
+	
+	}	
+.jobSelectionne, .jobSelectionne td {
+	background-color:green !important;
+	color:white !important;
+}
+#divImprimerie td {font-size:12px;}	
+
+select {height:60px; !important;}
+select, option {
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:20px !important;
+	padding:2px !important;
+	
+	
+	}
+
+
+
+#bt_imprimer {
+	
+background-color:#07B81E;
+border-radius:8px;
+text-align:center;
+border:0px #e2e2e2 solid;
+padding:8px;
+margin-bottom:20px;
+margin-top:20px;
+font-size:36px;
+font-family:arial, Geneva, sans-serif;
+color:white;
+	}
+
+
+#bt_historique {
+	
+background-color:#e2e2e2;
+border-radius:8px;
+text-align:center;
+border:0px #e2e2e2 solid;
+padding:8px;
+margin-bottom:20px;
+margin-top:20px;
+font-size:36px;
+font-family:arial, Geneva, sans-serif;
+color:white;
+	}
+
+.popup { position:absolute; z-index:50000; width:100%; height:1600px; top:0px;left:0px; background-color:#666; opacity:0.95; }
+#patientez {font-size:48px; font-family:Arial, Helvetica, sans-serif; text-align:center; margin-top:300px; color:white; }
+
+
+#JobSendingLog div { width:1000px; height:100%; text-align:center; margin:auto; background:#FFF;  opacity:1;margin-top:20px;}
+#JobSendingLog div td  {font-size:14px;}

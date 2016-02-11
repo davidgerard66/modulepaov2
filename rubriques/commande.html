@@ -1,0 +1,163 @@
+<div ng-include="'Rubriques/Onglets.html'"></div>
+
+                 <!-- div detail commande -->
+              <div id='divCommande'>
+                   
+                  
+                <div class="row">
+                   
+                   <div class="col-lg-8">
+  <h1>{{commande.Id_com}}-<a href='http://www.faire-part-creatif.com/edc/detailcommandefpc.asp?id_com={{commande.Id_web}}' target='_blank'>{{commande.Id_web}}</a>   
+  <span ng-show="commande.pao_needed" >{{commande.pao_needed_raison}}</span> 
+  <span ng-show="!commande.pao_needed && commande.prepress_needed" >FICHIERS A PREPARER</span> 
+   </h1>
+                                               
+                                   <table class="table table-bordered table-striped">
+                                    <thead>
+                                      <tr>
+                                       <td>BAT</td><td>Assignation</td><td>Priorité</td>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <tr><td> {{commande.BAT}}  </td><td> {{commande.Assignation}}</td><td>{{commande.Priorite}}</td></tr>
+                                    </tbody>
+                                    
+                                  </table>
+                  
+                                   
+                    </div>
+                   <div class="col-lg-1">    </div>
+                   <div class="col-lg-2">     
+                                      
+<ul class='pull-right list-unstyled' style='margin-top:40px;' >
+                                                <li>	Client : {{commande.Nom}}</li>
+                                                 <li>	Email : {{commande.Email}}</li>
+                                               <li>	Canal : {{commande.Canal }}</li>
+                                               <li>	Confirmé le : {{commande.Confirmation }}</li>
+                                               <li ng-click="isLoading=true">test</li>
+                                       
+                                       </ul>
+                    </div>
+                      <div class="col-lg-1">  <a ng-click="LoadCommande()" style='font-size:36px;float:right;margin-right:15px;margin-bottom:20px;margin-top:10px;'><i class="glyphicon glyphicon-refresh"></i></a>   </div>
+        </div>
+                   
+                    <table class="table table-bordered table-striped">
+                    
+                    <thead>
+                      <tr>
+                       
+                         <td ng-repeat="champ in champsCommandelignes">
+                          <a href="#" ng-click="$parent.sortType = champ.champ; $parent.sortReverse = !($parent.sortReverse)">
+                           {{ champ.label }}
+                          <span ng-show="$parent.sortType == champ.champ && !($parent.sortReverse)" class="fa fa-caret-down"></span>
+                            <span ng-show="$parent.sortType == champ.champ && $parent.sortReverse" class="fa fa-caret-up"></span>  
+                          </a>
+                        </td>
+                      
+                       
+                      </tr>
+                    </thead>
+                    
+                    <tbody>
+                      <tr ng-repeat="contenu in commande.contenu | orderBy:sortType:sortReverse  ">
+                         <td>
+                         {{ contenu.index}}
+                         </td>
+                         <td>{{contenu.typearticle}}</td>
+                         <td>
+                         <a target="_blank" style='text-decoration:none; color:black' href='https://www.google.fr/search?site=&source=hp&&gs_l=hp.7...0.0.1.10211.0.0.0.0.0.0.0.0..0.0....0...1c..64.hp..1.23.1690.MHrSV1voDKs&&q=faire+part+creatif+{{ contenu.ref}}&oq=faire+part+creatif+{{contenu.ref}}&btnI=1'>{{ contenu.ref}}</a>
+                         </td>
+                         
+                         <td>
+                         {{ contenu.quantite}}
+                         </td>
+                          <td>
+                         {{ contenu.imprime}}
+                        
+                         </td>
+                         <td ng-class="{'droptarget':!contenu.existe && contenu.chemin}" style='padding:0px;'> 
+                         
+                        <p ng-if="contenu.existe" style='padding:4px;'>
+                         <a  ng-click="LanceShell(contenu.chemin+contenu.fichier,'','')" class="btn btn-info" title="Ouvrir avec le logiciel par defaut"> {{ contenu.fichier}} <img src="logo_pdf.png" width="24" style='margin-left:10px;'>
+                         </a>
+                         <a  ng-click="LanceShell(contenu.chemin+contenu.fichier,'','IS')" title="Ouvrir avec Illustrator"  class="btn btn-info">
+                         <img src="logo_is.png" width="24">
+                         </a> <span style='font-style:italic;font-size:11px;'> Modifié le {{contenu.date_modification}}</span>
+                       </p>
+                       
+                         
+                          <div ng-if="contenu.chemin && !contenu.existe" ondrop="drop(event,$(this))"  ondragleave="leaveDrop($(this))"   ondragover="allowDrop(event,$(this))" style='height:100%'  >
+                                 
+                                  <p ondragstart="dragStart(event)" draggable="false" id="dragtarget" style='text-align:center; margin:auto'>
+                                  
+                                  PDF  introuvable !   
+                                  <br>
+                                  <i class="glyphicon glyphicon-arrow-down" style='font-size:24px;border:1px dashed white;padding:6px;padding-left:20px;padding-right:20px;margin:4px;'></i>
+                                  <br> Glisser un fichier ici 
+                                  <a ng-click="GenereFichier(commande.Id_com,contenu)"><br>ou Générer un fichier à partir de la source</a>
+                                  </p>
+                                   <input type='hidden' id='fichier' value="{{contenu.chemin}}{{contenu.fichier}}">
+                                   <input type='hidden' id='nomfichier' value="{{contenu.fichier}}">
+                                   <input type='hidden' id='id_ligne' value="{{contenu.id_ligne}}">
+                              <input type='hidden' id='id_com' value="{{commande.Id_com}}">
+                             </div>                      
+                         </td>
+                            <td>
+                                 <div ng-if="contenu.chemin">
+                                 
+                                <p ng-if="contenu.fichier_source"> 
+                                    {{contenu.fichier_source}}: {{contenu.fichier_source_type}}
+                                    <br>
+                                   <p ng-if="contenu.existe_source"> 
+                                   <a ng-click="LanceShell(commande.cheminsource+contenu.fichier_source_type+'\\'+contenu.fichier_source+'.pdf')">Voir la source</a>
+                                   </p>
+                                    <p ng-if="!contenu.existe_source" class="alert alert-warning"> le fichier source est introuvable </p>
+                                                                     
+                                 </p>
+                         
+                               
+                                   <button ng-show='!isPetitLoading' ng-click="setFichierSource(commande.Id_com,contenu,'textes')" title='Attribuer une source textées'>(+) textés </button>
+                                   <button ng-show='!isPetitLoading' ng-click="setFichierSource(commande.Id_com,contenu,'vierges')" title='Attribuer une source vierge'>(+) vierge </button>
+                                   <span ng-show='isPetitLoading'><br><img src='loaderpetit.gif' ng-show='isPetitLoading' class="loader"> {{20-(nbEssais*2)}} secondes restantes...</span>
+                                   
+                                 </div> 
+                           
+                         </td>
+                            <td>
+                         <span ng-if="contenu.chemin">{{ contenu.chemin}}</span>
+                          <span ng-if="!contenu.chemin && contenu.typearticle!='SERVICE'"><button class='btn btn-default'>Créer un dossier</button></span>
+                         
+                         </td>
+                         
+                       
+                      </tr>
+                    </tbody>
+                    
+                  </table>
+                  <hr>
+                    <div class="row">
+                   
+                   <div class="col-lg-8">
+                                <p class="alert alert-info">
+	                                <button ng-click="EnvoyerBat(commande)" class="btn btn-default">Envoyer le BAT</button>
+                                    <button ng-click="" class="btn btn-default">Envoyer en Impression</button>
+
+                                    <button ng-if="commande.Canal=='STAN' && commande.BAT !='BATOK'"
+                                            ng-click="deverouilleStan(commande)" class="btn btn-danger">Déverouiller les fichiers pour l'allemagne</button>
+                                </p>
+                   </div>
+                                         
+                      <div class="col-lg-4 alert alert-warning">
+                      <span class="panel-title" style='font-size:24px;line-height:30px;'>Notes</span>
+                              <ul>
+                              <li ng-repeat="note in commande.notes" >
+                                 <span ng-if="note.note_important">IMPORTANT</span>  {{note.note_nom}} le {{note.note_date}}<br><span style='color:black'> {{note.note_note}} </span>                
+                              </li>
+                              </ul>
+                     </div>
+                  </div>
+                                                                             
+               
+              </div>
+
+

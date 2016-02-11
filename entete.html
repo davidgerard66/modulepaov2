@@ -1,0 +1,52 @@
+    <h2>Commandes en cours,  vous êtes connecté en tant que <span style='color:green'> {{User.Nom}}</span> </h2>
+
+            <ul id="menuTabs" class="nav nav-tabs">
+            
+                    <li ng-class="{'active' : url=='/Commandes/new/PART' }">
+                        <a href="#/Commandes/new/PART" style='float:left'>France > A traiter <span>({{commandes.PART.length}})</span>
+                        	<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a> 
+                    </li> 
+                                     
+                    <li>
+                        <a href="#/Commandes/BATOK/STAN"  style='float:left'>Allemagne > A traiter <span>({{commandes.STAN.length}})</span>
+                        	<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a> 
+                    </li>  
+                                    
+                    <li>
+                        <a href="#/Commandes/new/AUTRES" style='float:left'>Autres > A traiter <span>({{commandes.AUTRES.length}})</span>
+                        	<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a> 
+                    </li>  
+                                   
+                    <li>
+                        <a href="#/Commandes/bat/tout"  style='float:left'>En attente de validation <span>({{commandes.bat.length}})</span>
+                        	<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a> 
+                    </li>
+                    
+                    <li>
+                        <a href="#/Commandes/prepress/tout"  style='float:left'>Fichiers à préparer <span>({{commandes.prepress.length}})
+                       		<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="#/Journal">Journal 
+                        	<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a>
+                    </li>
+                    
+                    <li  ng-class="{'active': showImprimerie==true && !showPhaser}">
+                        <a ng-click="LoadImprimerie()">Imprimerie 
+                        	<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a>
+                    </li>
+                    
+                    <li  ng-class="{'active': showImprimerie==true && showPhaser}">
+                    	<a ng-click="LoadImprimerie('PHASER')">Repiquage 
+                       	 	<i style='margin-left:10px;' class='glyphicon glyphicon-refresh'></i>
+                        </a>
+                    </li>
+			</ul>

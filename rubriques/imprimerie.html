@@ -1,0 +1,172 @@
+<div ng-include="'rubriques/Onglets.html'"></div>
+
+<div id='divImprimerie'>
+    <div class="row">
+        <div class="col-lg-8" style='margin-top:4px;'>
+
+            <!-- entete filtres et boutons listye imprimerie-->
+            <ul class="list-unstyled list-inline">
+                <li ng-repeat="champFiltre in champsAfiltrerImprimerie" >
+                   
+                 <a ng-if="champFiltre.champ=='priorite'"  ng-click="supprimerFiltres();filtreperso.priorite='EXPRESS'" class='alert alert-danger puceImprimerie' title='nombre de job Express en attente'>{{ nbJobsExpress() }}</a>
+                 
+                 <a ng-if="filtreperso[champFiltre.champ]!=undefined && filtreperso[champFiltre.champ]!=''" ng-click="filtreperso[champFiltre.champ]=''" class='alert  puceImprimerie' style='margin-left:-10px;' title='Retirer le filtre'><i class="glyphicon glyphicon-minus-sign"></i></a>
+                 
+                 
+                    <select class="form-control" style='color:black;width:124px;' ng-model="filtreperso[champFiltre.champ]"
+                            ng-options="job[champFiltre.champ] as job[champFiltre.champ]  for job in (productionOrders | filter:{code_planche :filtreperso.code_planche || undefined, papier :filtreperso.papier || undefined,genre :filtreperso.genre || undefined, priorite :filtreperso.priorite || undefined, decoupe :filtreperso.decoupe|| undefined, finition :filtreperso.finition || undefinedfinition }) | orderBy:champFiltre.champ | unique :champFiltre.champ">
+
+                        <option value="">> {{champFiltre.label}}</option>
+                    </select>
+                     
+                </li>
+
+                <li>
+                        <span class="alert alert-info" ng-click="sortType=['code_planche','ref'];isReadyToSendJobs(filteredJobs)"
+                        style="cursor:pointer;height:30px;padding:4px;line-height:30px;font-size:26px;">{{filteredJobs.length}} sur {{productionOrders.length}} <span
+                        style='font-size:14px;'>[{{SommeChamp(filteredJobs,'feuilles') + (filteredJobs.length)*2}} feuilles]</span></span>
+                </li>
+
+               
+
+            </ul>
+ 				
+                <div class='row'>
+                    <div class='col-lg-2 pull-right'>
+                    <button class='btn btn-warning btn-sm'  ng-show="casejob.length>0" ng-click="casejob = [];"> Tout déselectionner</button>
+                    </div>
+                </div>
+
+            <table class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <td ng-repeat="champ in champsProductionOrders">
+                        <a ng-click="$parent.sortType = champ.champ; $parent.sortReverse = !($parent.sortReverse)">
+                            {{ champ.label }}
+                            <span ng-show="$parent.sortType == champ.champ && !($parent.sortReverse)"
+                                  class="fa fa-caret-down"></span>
+                            <span ng-show="$parent.sortType == champ.champ && $parent.sortReverse"
+                                  class="fa fa-caret-up"></span>
+                        </a>
+                    </td>
+                    <td>Actions</td>
+                    <td>Imp.</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-class="{'jobSelectionne': casejob[job.id_ordre]}" ng-repeat="job in filteredJobs = (productionOrders | orderBy:sortType:sortReverse | filter:searchCommande |filter:{
+                                                                                                                            papier: filtreperso['papier'] || undefined,
+                                                                                                                             genre: filtreperso['genre'] || undefined,
+                                                                                                                            code_planche : filtreperso['code_planche'] || undefined,
+                                                                                                                           finition : filtreperso['finition'] || undefined,
+                                                                                                                             decoupe : filtreperso['decoupe'] || undefined,
+                                                                                                                            priorite : filtreperso['priorite'] || undefined                                                                                                                            }: true  )">
+                    <td ng-repeat="c in champsProductionOrders">
+                       
+                      
+                        {{ job[c.champ]}} <span ng-if="c.champ=='ref'"> x {{job.quantite}}</span>
+                      
+                     
+                    </td>
+                    
+                    <td>
+                        <a title="voir le fichier" target="_blank" href="http://plancheur/?{{job.id_ordre}}"><i class="glyphicon glyphicon-eye-open"></i></a>
+                        <!--  <a title="Modifier le job"><i class="glyphicon glyphicon-wrench"></i></a>-->
+                        <a title="Imprimer une epreuve" ng-click="sendToIndigo(job.id_ordre,true,true)"><i
+                                class="glyphicon glyphicon-adjust"></i></a>
+                    </td>
+                    
+                    <td>
+                    
+                        <input type="checkbox" ng-checked="casejob[job.id_ordre]==true"
+                               ng-click="updateJobSelection(job.id_ordre)" 
+                               ng-model="casejob[job.id_ordre]"
+                               ng-true-value="{{job.id_ordre}}" 
+                               ng-false-value="">
+                               
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-lg-4" ng-if="!showPhaser" id="imprimantediv">
+
+            <div id='bt_imprimer' ng-show="readyToSend && Imprimante!=''" ng-click="imprimeJobs(filteredJobs)">
+                IMPRIMER
+            </div>
+
+            <div id='bt_historique'>
+                <a ng-click="showJournalImprimerie()">HISTORIQUE</a>
+            </div>
+
+            <div class="imprimante" ng-click="setImprimante('HP1')"
+                 ng-class="{'imprimanteSelectionne':Imprimante=='HP1'}"><p>HP1</p><img src="indigo.png" width="450">
+            </div>
+            <div class="imprimante" ng-click="setImprimante('HP2')"
+                 ng-class="{'imprimanteSelectionne':Imprimante=='HP2'}"><p>HP2</p><BR><img src="indigo.png" width="450">
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div class="col-lg-1"></div>
+
+</div>
+
+<!-- JOURNAL IMPRIMERIE-->
+
+  <div id='JobSendingLog' ng-if="showJobSendingLog==true" class="popup" style='margin-top:168px;'>
+                  
+                  <div>
+                    Journal d'activités
+                    <i class="glyphicon glyphicon-remove pull-right" ng-click="showJournalImprimerie()"></i>
+                   
+                    <table class="table table-bordered table-striped">
+                    <thead>
+                      <tr>
+                         <td ng-repeat="champ in champsJournal">
+                          <a href="#" ng-click="$parent.sortType = champ.champ; $parent.sortReverse = !($parent.sortReverse)">
+                           {{ champ.label }}
+                          <span ng-show="$parent.sortType == champ.champ && !($parent.sortReverse)" class="fa fa-caret-down"></span>
+                            <span ng-show="$parent.sortType == champ.champ && $parent.sortReverse" class="fa fa-caret-up"></span>  
+                          </a>
+                        </td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="activite in journalImprimerie | orderBy:sortType:sortReverse | filter:searchCommande ">
+                         <td>
+                         {{ activite.user.nom}}
+                         </td>
+                         <td>
+                         {{ activite.date_creation}}
+                         </td>
+                         <td>
+                         {{ activite.id_com}}
+                         </td>
+                         <td>
+                         {{ activite.id_ordre}}
+                         </td>
+                            <td>
+                         {{ activite.ref}}
+                         </td>
+                           <td>
+                         {{ activite.quantite}}
+                         </td>
+                            <td>
+                         {{ activite.activite}}
+                         </td>
+                      </tr>
+                    </tbody></table>
+                   </div>
+                    </div>
+                    
+<!-- popup pendingjobs -->
+<div ng-show="isSendingJobs" class="popup">
+         <div id="patientez"> 
+         	merci de patienter <br><br>il reste {{pendingJobs}} 
+             <span ng-if="pendingJobs>1">jobs à envoyer</span>
+             <span ng-if="pendingJobs<1">job à envoyer</span>
+         </div>
+</div>

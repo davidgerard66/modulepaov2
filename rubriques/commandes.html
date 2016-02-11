@@ -1,0 +1,52 @@
+<div ng-include="'Rubriques/Onglets.html'"></div>
+
+
+<div id='divGrille'>
+
+    <div>
+        <ul class="list-unstyled list-inline">
+            <li ng-repeat="champFiltre in champsAfiltrer" style="margin:2px;">
+                <select class="form-control" style='color:black' ng-model="filtreperso[champFiltre.champ]"
+                        ng-options="commande as commande[champFiltre.champ] for commande in commandes.filtre | orderBy:champFiltre.champ | unique :champFiltre.champ">
+                    <option value="">- {{champFiltre.label}} -</option>
+                </select>
+            </li>
+        </ul>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <td ng-repeat="champ in champsCommandes">
+                <a ng-click="$parent.sortType = champ; $parent.sortReverse = !($parent.sortReverse)">
+                    {{ champ }}
+                    <span ng-show="$parent.sortType == champ && !($parent.sortReverse)" class="fa fa-caret-down"></span>
+                    <span ng-show="$parent.sortType == champ && $parent.sortReverse" class="fa fa-caret-up"></span>
+                </a>
+            </td>
+            <td>Actions</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-class="{'alerte': commande.Alerte != ''}" ng-repeat="commande in commandes.grille | orderBy:sortType:sortReverse | filter:searchCommande | filter:{
+                                                                                                                            Option: filtreperso['Option'].Option,
+                                                                                                                            Confirmation : filtreperso['Confirmation'].Confirmation,
+                                                                                                                            BAT : filtreperso['BAT'].BAT,
+                                                                                                                            Priorite : filtreperso['Priorite'].Priorite,
+                                                                                                                            Assignation : filtreperso['Assignation'].Assignation,
+                                                                                                                            }: true   ">
+
+            <td ng-repeat="champ in champsCommandes" ng-click="CliqueCellule(commande,champ)">
+                {{ commande[champ]}}
+            </td>
+            <td>
+                <i class="glyphicon glyphicon-user" title="Assigner la commande à {{User.Nom}}"
+                   ng-click="Assigne(commande,User)"></i>
+                <i ng-if="commande.Alerte!=''" class="glyphicon glyphicon-warning-sign"
+                   title="Le système a detecté l'anomalie : '{{commande.Alerte}}'"></i>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<!-- fin div grille liste des commandes en cours -->
