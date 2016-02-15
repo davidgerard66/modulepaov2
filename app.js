@@ -19,6 +19,10 @@ angular.module('AppliPao', ['ngRoute'])
 			  templateUrl: 'rubriques/commande.html',
 			  controller: 'mainController'
 		  })
+		  .when('/Plancheur/:statut_planche', {
+			  templateUrl: 'rubriques/plancheur.html',
+			  controller: 'mainController'
+		  })
   })
 
 .factory('Onglets', function() {
@@ -33,10 +37,10 @@ angular.module('AppliPao', ['ngRoute'])
 		{	Label:'Autres > A TRAITER',	Title:'Commandes export,revendeurs etc, en attente de PAO',
 			Route:'/Commandes/new/AUTRES' },
 
-		{	Label:'En Attente de Validation', Title:'Commandes avec BAT non validé',
+		{	Label:'BAT en cours', Title:'Commandes avec BAT non validé',
 			Route:'/Commandes/bat/tout' },
 
-		{	Label:'Fichiers à Préparer', Title:'Commandes fichiers manquants ou a préparer pour impression',
+		{	Label:'A préparer pour presse', Title:'Commandes fichiers manquants ou a préparer pour impression',
 			Route:'/Commandes/prepress/tout' },
 
 		{	Label:'Journal', Title:'Log de tous les évènements à l\'horizon, aucun rapport avec les trous noirs',
@@ -47,7 +51,14 @@ angular.module('AppliPao', ['ngRoute'])
 
 		{	Label:'Repiquage', Title:'Impressions Phaser en attente',
 			Route:'/Imprimerie/Phaser'
+		},
+		{	Label:'Attente Plancheur', Title:'Attente plancheur',
+			Route:'/Plancheur/0'
+		},
+		{	Label:'Bloqués Plancheur', Title:'Bloqué plancheur',
+			Route:'/Plancheur/1'
 		}
+		
 		]};
 })
 
@@ -182,7 +193,7 @@ angular.module('AppliPao', ['ngRoute'])
 					{'champ':'id_ordre','label':'JOB'},
 					{'champ':'ref','label':'Réf'},
 					{'champ':'quantite','label':'Quantité'},
-				   {'champ':'Action','label':'activite'},
+				   {'champ':'Action','label':'Action'},
 				   ];
 	$scope.champsProductionOrders = [
 		{'champ':'Id_com','label':'Commande'},
@@ -212,7 +223,11 @@ angular.module('AppliPao', ['ngRoute'])
 				   {'champ':'imprime','label':'Impression'},
 				   {'champ':'fichier','label':'fichier'},
 				    {'champ':'fichier_source','label':'source'},
-				   {'champ':'chemin','label':'dossier'},				
+				   {'champ':'chemin','label':'dossier'},
+				   //{'champ':'id_ordre','label':'Id job'},
+				   {'champ':'imprimeur','label':'Imprimeur'},
+				   {'champ':'statut_ordre','label':'Etat du job'},				
+				   {'champ':'statut_plancheur','label':'Statut planche'}
 				   ];
   
   // champs filtrable 
@@ -295,6 +310,66 @@ angular.module('AppliPao', ['ngRoute'])
 
   };
 
+  $scope.isReadyToProduce = function(commande) {
+
+        var isready = true; // tous les fichiers existent
+  		angular.forEach(commande.contenu, function (ligne, key) {
+					  
+					if( ligne.chemin!='' && ligne.typearticle!='SERVICE') { 
+					    if (!ligne.existe ) {isready=false}
+					} 
+																});
+
+  		if (!isready) {
+  			alert("il manque des fichiers pour finaliser l'opération");
+  			return false;
+  		} else {return true}
+
+  }
+
+  $scope.commandeHasJobs = function(commande) {
+
+        var hasjob = false; // tous les fichiers existent
+  		angular.forEach(commande.contenu, function (ligne, key) {
+					  
+					if( ligne.id_ordre!="" && ligne.statut_ordre!='annule') { 
+					   hasjob =  true
+					}
+					
+																});
+
+  		if (hasjob) {
+  			return true
+  		}
+
+
+  }
+
+
+
+  $scope.miseEnProduction = function(commande) {
+var confirmation_user = confirm('etes vous sur de passer cette commande en production : ' + commande.Id_com + '?');
+if (!confirmation_user) {return false}
+ $scope.isLoading=true;
+     if (!($scope.isReadyToProduce(commande))) {return false}
+
+     	$http.get('_setMiseEnProduction.asp',{params : {id_com : commande.Id_com}}).
+					success(function(data, status, headers, config) {
+				 
+					   $scope.isLoading=false;
+					   alert(data)
+
+					  }).
+					error(function(data, status, headers, config) {
+					  // log error
+						$scope.isLoading=false;
+						alert(data)
+					  console.log("erreur de la mise en production");
+					});
+
+
+  }
+
   $scope.LoadCommande = function(idcom) {
 	  if (idcom==undefined) { idcom = $scope.commande.Id_com}
 	 console.log("actualisation de la commande "+ idcom);
@@ -324,6 +399,8 @@ angular.module('AppliPao', ['ngRoute'])
 					   $scope.isLoading=false;
 					 console.log("fermeture loader loadcommande");
 					   $scope.LoadNotes();
+					   $scope.LoadJournal();
+
 					  }).
 					error(function(data, status, headers, config) {
 					  // log error
@@ -384,6 +461,8 @@ $scope.searchCommande='';
    
     $scope.Assigne = function(commande, User){
 	  		    
+					
+					if (commande.Assignation == User.Nom ) {return false} // on assigne pas  un trucdeja assigne a la mm personne, c con
 						 $scope.isLoading=true;
 						
 						   $http.get('_setAssignation.asp',{params : {Id_com : commande.Id_com, Id_user : User.Id, Nom_user:User.Nom}}).
@@ -581,14 +660,17 @@ $scope.persistFichierSource = function(id_ligne, fichier_source, fichier_source_
 											$http(req)
 											.success(function(data, status, headers, config) {
 													
-													console.log('fichierenregistre');
-													$location.path('/Commande/'+id_com); //on actualise du coup
+													console.log('fichierenregistre');$scope.isLoading=false;
+													$timeout(function(){  
+													$scope.LoadCommande(); } , 1500);
+													
 													console.log("fermeture loader3");
 												  })
 										     .error(function(data, status, headers, config) {
 												    // log error
 													alert( data)
 												    console.log('fichier pas enregistre' + status);
+												    $scope.isLoading=false;
 													$location.path('/Commande/'+id_com); //on actualise du coup
 												});
 
@@ -597,13 +679,14 @@ $scope.persistFichierSource = function(id_ligne, fichier_source, fichier_source_
 											 $http.get('http://localhost:3000/download/'+source+'/'+destination).
 												success(function(data, status, headers, config) {
 													console.log('telechargeok, loadcommande('+id_com+')');
-
-
-													 $scope.LoadCommande(id_com);
+$scope.isLoading=false;
+													$timeout(function(){  
+													$scope.LoadCommande(); } , 1500);
 													 console.log("redir ok")
 												  }).
 												error(function(data, status, headers, config) {
 												  // log error
+												  $scope.isLoading=false;
 												  console.log('telecharge pas ok' + status);
 													 $location.path('/Commande/'+id_com); //on actualise du coup
 												});
@@ -613,7 +696,8 @@ $scope.persistFichierSource = function(id_ligne, fichier_source, fichier_source_
    // generation des data 
    $scope.LoadJournal = function() {
 		   $scope.isLoading=true;
-		   $http.get('_getJournalPao.asp').
+		   id_com = $routeParams.idcommande;
+		   $http.get('_getJournalPao.asp',{params:{id_com:id_com}}).
 			success(function(data, status, headers, config) {
 			    $scope.journal = data;
 			    $scope.isLoading=false;
@@ -666,6 +750,25 @@ $scope.persistFichierSource = function(id_ligne, fichier_source, fichier_source_
 	   $scope.LoadJournalImprimerie();
 		 
    };
+
+    $scope.LoadPlancheur = function(statut_planche) {
+    
+	   $scope.isLoading=true;
+	
+	   $http.get('_getProductionOrders.asp',{params:{'imprimeur' : 'Indigo','statut_plancheur' :  statut_planche}}).
+		   success(function(data, status, headers, config) {
+			   $scope.productionOrders = data;
+			   $scope.isLoading=false;
+			   console.log("productionOrders chargés");
+		   }).
+		   error(function(data, status, headers, config) {
+			   // log error
+			   $scope.isLoading=false;
+			   alert("erreur de l'application");
+		   });
+	 
+   };
+
 
    $scope.nbJobsExpress = function(){
 				
@@ -765,6 +868,54 @@ $scope.persistFichierSource = function(id_ligne, fichier_source, fichier_source_
 			}
 		};
 
+
+		$scope.StopImpression = function(commande) {
+
+			
+			
+			var confirmation_user = confirm('Annulation des jobs de ' + commande.Id_com + '?');
+			
+
+			if (confirmation_user) {
+				
+				$scope.isLoading=true;
+				
+				angular.forEach(commande.contenu, function (job, key) {
+					
+					if (job.id_ordre!='') {	$scope.setStatutJob(job.id_ordre, 'annule', commande.Id_com)}
+
+				});
+
+				$scope.setStatutCommande(commande.Id_com,'oui','non','annulation job','non');
+				$scope.isLoading=false;
+				$scope.LoadCommande();
+
+			}
+		};
+		
+		$scope.setStatutJob = function(id_job,statut_job,id_com){
+
+				  $http.get('_setStatutJob.asp',{params : {id_job : id_job, statut_job: statut_job, id_com : id_com}}).
+				  success(function(data, status, headers, config) {
+				 
+				  }).
+				error(function(data, status, headers, config) {
+					alert("erreur statut_job");
+				});
+			 
+	   };
+	   $scope.setStatutCommande = function(id_com,pao_needed,prepress_needed,pao_needed_raison,production_autorise){
+
+				  $http.get('_setStatutCommande.asp',{params : {id_com : id_com,pao_needed:pao_needed,prepress_needed:prepress_needed,pao_needed_raison:pao_needed_raison, production_autorise:production_autorise }}).
+				  success(function(data, status, headers, config) {
+				 
+				  }).
+				error(function(data, status, headers, config) {
+					alert("erreur statut_commande");
+				});
+			 
+	   };
+
 		// generation des notes
 	   $scope.LoadNotes = function() {
 			   $http.get('_getCommandeNotes.asp',{params : {id_com : $scope.commande.Id_com}}).
@@ -791,26 +942,51 @@ $scope.persistFichierSource = function(id_ligne, fichier_source, fichier_source_
 
 			$scope.EnvoyerBat = function(commande){
 
+
+					 if (!($scope.isReadyToProduce(commande))) {return false}
+
 					 if (confirm("Etes-vous sûr de vouloir envoyer le BAT à " + commande.Email+"?")) {
 
 			$scope.isLoading=true;
 
-				  $http.get('http://plancheur/ed/modules/pao/_setBatEnvoye.asp',{params : {Id_com : commande.Id_com}}).
+				  $http.get('http://plancheur/ed/modules/pao/_setBatEnvoye.asp',{params : {Id_com : commande.Id_com,Id_com_web : commande.Id_web,Id_client : commande.Id_client}}).
 				success(function(data, status, headers, config) {
-						$scope.commande.BAT = "BAT le " + data.date;
-						alert("Le bat a été préparé avec success")
-				  $scope.isLoading=false;
+					
+						if (data.bat_web ==true) {
+							alert("Le bat a été préparé et envoyé avec success sur espace client")
+						} else {
+							alert("Le bat a été préparé placé dans le hotfolderbatMail")
+						}
+						$scope.setStatutBat(commande.Id_com,'BAT',data.bat_web)
+						$scope.LoadCommande();
+				 		$scope.isLoading=false;
+
 				  }).
 				error(function(data, status, headers, config) {
 				  // log error
 
 					$scope.isLoading=false;
-					alert("erreur de l'application");
+					alert("erreur envoi du bat L811");
 				});
 			 }
 	   };
    
+	   		$scope.setStatutBat = function(id_com,statut_bat, is_bat_web){
+
+				  $http.get('_setStatutBat.asp',{params : {Id_com : id_com,statut_bat: statut_bat, is_bat_web : is_bat_web}}).
+				  success(function(data, status, headers, config) {
+				 
+				  }).
+				error(function(data, status, headers, config) {
+					
+					alert("erreur enregistrement du statut_bat L830");
+				});
+			 
+	   };
+
+
    var url = $location.path()
+   $scope.showFiltreDate = false;
    for( var param in $routeParams) {
             // Remove from the url all params inside $stateParams
             console.log(param)
@@ -821,17 +997,30 @@ $scope.persistFichierSource = function(id_ligne, fichier_source, fichier_source_
 		switch(url) {
     case '/Journal':
 	       $scope.LoadJournal();
+		document.title = 'Journal ';
 
         break;
     case '/Commandes':
         $scope.LoadGrille($routeParams.statut_bat,$routeParams.groupe_canal);
+        document.title = 'CMD '+ $routeParams.statut_bat+' - '+$routeParams.groupe_canal ;
         break;
 	case '/Imprimerie':
+		 
+		  $scope.showFiltreDate = true; 
 		  $scope.LoadImprimerie();
+		  document.title = 'Imprimerie' ;
 		  break;
 	case '/Commande':
 		$scope.LoadCommande($routeParams.idcommande);
+		document.title = $routeParams.idcommande ;
 		break;
+
+	case '/Plancheur':
+		
+		document.title = 'Plancheur ' + $routeParams.statut_planche ;
+		$scope.LoadPlancheur($routeParams.statut_planche);
+		break;
+
 
 			default:
         console.log("pas de route")

@@ -9,17 +9,25 @@
                    <div class="col-lg-8">
   <h1>{{commande.Id_com}}-<a href='http://www.faire-part-creatif.com/edc/detailcommandefpc.asp?id_com={{commande.Id_web}}' target='_blank'>{{commande.Id_web}}</a>   
   <span ng-show="commande.pao_needed" >{{commande.pao_needed_raison}}</span> 
-  <span ng-show="!commande.pao_needed && commande.prepress_needed" >FICHIERS A PREPARER</span> 
+  <span ng-show="!commande.pao_needed && commande.prepress_needed" >FICHIERS A PREPARER</span>  
    </h1>
                                                
                                    <table class="table table-bordered table-striped">
                                     <thead>
                                       <tr>
-                                       <td>BAT</td><td>Assignation</td><td>Priorité</td>
+                                       <td>BAT</td><td>Assignation</td><td>Priorité</td> <td>Pao_needed</td><td>Prepress_needed</td><td>Production_autorise</td>
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      <tr><td> {{commande.BAT}}  </td><td> {{commande.Assignation}}</td><td>{{commande.Priorite}}</td></tr>
+                                      <tr>
+                                      <td> {{commande.BAT}}  </td>
+                                      <td> {{commande.Assignation}}</td>
+                                      <td>{{commande.Priorite}}</td>
+                                       <td>{{commande.pao_needed}}</td>
+                                        <td>{{commande.prepress_needed}}</td>
+                                         <td>{{commande.production_autorise}}</td>
+                                      
+                                      </tr>
                                     </tbody>
                                     
                                   </table>
@@ -30,7 +38,7 @@
                    <div class="col-lg-2">     
                                       
 <ul class='pull-right list-unstyled' style='margin-top:40px;' >
-                                                <li>	Client : {{commande.Nom}}</li>
+                                                <li>	Client : {{commande.Id_client}} - {{commande.Nom}}</li>
                                                  <li>	Email : {{commande.Email}}</li>
                                                <li>	Canal : {{commande.Canal }}</li>
                                                <li>	Confirmé le : {{commande.Confirmation }}</li>
@@ -78,9 +86,9 @@
                          <td ng-class="{'droptarget':!contenu.existe && contenu.chemin}" style='padding:0px;'> 
                          
                         <p ng-if="contenu.existe" style='padding:4px;'>
-                         <a  ng-click="LanceShell(contenu.chemin+contenu.fichier,'','')" class="btn btn-info" title="Ouvrir avec le logiciel par defaut"> {{ contenu.fichier}} <img src="logo_pdf.png" width="24" style='margin-left:10px;'>
+                         <a  ng-click="Assigne(commande,User);LanceShell(contenu.chemin+contenu.fichier,'','')" class="btn btn-info" title="Ouvrir avec le logiciel par defaut"> {{ contenu.fichier}} <img src="logo_pdf.png" width="24" style='margin-left:10px;'>
                          </a>
-                         <a  ng-click="LanceShell(contenu.chemin+contenu.fichier,'','IS')" title="Ouvrir avec Illustrator"  class="btn btn-info">
+                         <a  ng-click="Assigne(commande,User);LanceShell(contenu.chemin+contenu.fichier,'','IS')" title="Ouvrir avec Illustrator"  class="btn btn-info">
                          <img src="logo_is.png" width="24">
                          </a> <span style='font-style:italic;font-size:11px;'> Modifié le {{contenu.date_modification}}</span>
                        </p>
@@ -88,13 +96,13 @@
                          
                           <div ng-if="contenu.chemin && !contenu.existe" ondrop="drop(event,$(this))"  ondragleave="leaveDrop($(this))"   ondragover="allowDrop(event,$(this))" style='height:100%'  >
                                  
-                                  <p ondragstart="dragStart(event)" draggable="false" id="dragtarget" style='text-align:center; margin:auto'>
+                                  <p ondragstart="Assigne(commande,User);dragStart(event)" draggable="false" id="dragtarget" style='text-align:center; margin:auto'>
                                   
                                   PDF  introuvable !   
                                   <br>
                                   <i class="glyphicon glyphicon-arrow-down" style='font-size:24px;border:1px dashed white;padding:6px;padding-left:20px;padding-right:20px;margin:4px;'></i>
                                   <br> Glisser un fichier ici 
-                                  <a ng-click="GenereFichier(commande.Id_com,contenu)"><br>ou Générer un fichier à partir de la source</a>
+                                  <a ng-click="Assigne(commande,User);GenereFichier(commande.Id_com,contenu)"><br>ou Générer un fichier à partir de la source</a>
                                   </p>
                                    <input type='hidden' id='fichier' value="{{contenu.chemin}}{{contenu.fichier}}">
                                    <input type='hidden' id='nomfichier' value="{{contenu.fichier}}">
@@ -114,8 +122,6 @@
                                     <p ng-if="!contenu.existe_source" class="alert alert-warning"> le fichier source est introuvable </p>
                                                                      
                                  </p>
-                         
-                               
                                    <button ng-show='!isPetitLoading' ng-click="setFichierSource(commande.Id_com,contenu,'textes')" title='Attribuer une source textées'>(+) textés </button>
                                    <button ng-show='!isPetitLoading' ng-click="setFichierSource(commande.Id_com,contenu,'vierges')" title='Attribuer une source vierge'>(+) vierge </button>
                                    <span ng-show='isPetitLoading'><br><img src='loaderpetit.gif' ng-show='isPetitLoading' class="loader"> {{20-(nbEssais*2)}} secondes restantes...</span>
@@ -129,6 +135,14 @@
                          
                          </td>
                          
+                      <td>{{contenu.imprimeur}}</td>
+                        <td> 
+                        
+                        <span ng-if="contenu.statut_ordre=='new'"> en attente d'impression </span>
+                         <span ng-if="contenu.statut_ordre!='new'"> {{contenu.statut_ordre }} </span>
+                        
+                       </td>
+                       <td>{{contenu.statut_plancheur}}</td>
                        
                       </tr>
                     </tbody>
@@ -137,24 +151,86 @@
                   <hr>
                     <div class="row">
                    
-                   <div class="col-lg-8">
-                                <p class="alert alert-info">
-	                                <button ng-click="EnvoyerBat(commande)" class="btn btn-default">Envoyer le BAT</button>
-                                    <button ng-click="" class="btn btn-default">Envoyer en Impression</button>
+                           
+                     
+                     
+                      <div class="col-lg-6 ">
+                     		<p class="alert alert-success">
+                      <span class="panel-title" style='font-size:24px;line-height:30px;'>Journal d'activités</span>
+                                            
+                                            <table class="table table-bordered table-striped">
+                                            <thead>
+                                            <tr>
+                                            <td ng-repeat="champ in champsJournal">
+                                            <a ng-click="$parent.sortType = champ.champ; $parent.sortReverse = !($parent.sortReverse)">
+                                            {{ champ.label }}
+                                            <span ng-show="$parent.sortType == champ.champ && !($parent.sortReverse)"
+                                            class="fa fa-caret-down"></span>
+                                            <span ng-show="$parent.sortType == champ.champ && $parent.sortReverse"
+                                            class="fa fa-caret-up"></span>
+                                            </a>
+                                            </td>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr ng-repeat="activite in journal | orderBy:sortType:sortReverse | filter:searchCommande ">
+                                            <td>
+                                            {{ activite.user.nom}}
+                                            </td>
+                                            <td>
+                                            {{ activite.date_creation}}
+                                            </td>
+                                            <td>
+                                            {{ activite.id_com}}
+                                            </td>
+                                            <td>
+                                            {{ activite.id_ordre}}
+                                            </td>
+                                            <td>
+                                            {{ activite.ref}}
+                                            </td>
+                                            <td>
+                                            {{ activite.quantite}}
+                                            </td>
+                                            <td>
+                                            {{ activite.activite}}
+                                            </td>
+                                            </tr>
+                                            </tbody>
+                                            
+                                            </table>
+                      
+                      
+                                                   </p>
+                     </div>
+                     
+                   
+                      <div class="col-lg-3 ">
+                      <p class="alert alert-warning">
+                                      <span class="panel-title" style='font-size:24px;line-height:30px;'>Notes</span>
+                                              <ul>
+                                              <li ng-repeat="note in commande.notes" >
+                                                 <span ng-if="note.note_important">IMPORTANT</span>  {{note.note_nom}} le {{note.note_date}}<br><span style='color:black'> {{note.note_note}} </span>                
+                                              </li>
+                                              </ul>
+                              </p>
+                     </div>
+                     
+                      <div class="col-lg-3">
+                                <p class="">
+	                                <button ng-click="Assigne(commande,User);EnvoyerBat(commande)" class="btn btn-default">Envoyer le BAT</button>
+                                    <button ng-click="miseEnProduction(commande);LoadCommande();" class="btn btn-default">Envoyer en Impression</button>
 
                                     <button ng-if="commande.Canal=='STAN' && commande.BAT !='BATOK'"
                                             ng-click="deverouilleStan(commande)" class="btn btn-danger">Déverouiller les fichiers pour l'allemagne</button>
+                                  </p>
+                                  <p>          
+                                            <!--bouton stop impression -->
+                                               <button ng-if="commandeHasJobs(commande)"  ng-click="StopImpression(commande)" class="btn btn-danger">Stop Impression</button>
                                 </p>
                    </div>
-                                         
-                      <div class="col-lg-4 alert alert-warning">
-                      <span class="panel-title" style='font-size:24px;line-height:30px;'>Notes</span>
-                              <ul>
-                              <li ng-repeat="note in commande.notes" >
-                                 <span ng-if="note.note_important">IMPORTANT</span>  {{note.note_nom}} le {{note.note_date}}<br><span style='color:black'> {{note.note_note}} </span>                
-                              </li>
-                              </ul>
-                     </div>
+                                
+                     
                   </div>
                                                                              
                

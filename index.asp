@@ -17,7 +17,7 @@ Response.CharSet = "UTF-8"
 
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+<head><META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
     <meta charset="UTF-8">
     <title>PAO EN COURS</title>
 
@@ -102,8 +102,9 @@ Response.CharSet = "UTF-8"
             reader.onload = function (event) {
                 fichierbin =  event.target.result;
 
-
-                angular.element(document.getElementById('scope')).scope().Telecharge(nom_fichier,destination,fichierbin,id_ligne,id_com);
+				console.log("ok");
+                angular.element(document.getElementById('ngview')).scope().Telecharge(nom_fichier,destination,fichierbin,id_ligne,id_com);
+				console.log("ok2");
             };
             reader.readAsDataURL(event.dataTransfer.files[0]);
         } else {

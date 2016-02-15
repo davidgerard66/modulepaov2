@@ -19,10 +19,10 @@ epreuve = request.querystring("epreuve")
 imprimante = request.querystring("imprimante")
 
 
-	ouvrirtable mm_frans_string,rs,"select fichier_planche,h.indigonew as indigonew, fic.fichier_nom as fichier_nom, fic.id_com as id_com  from production_queue p inner join hotfolders h on p.ref=h.ref  inner join commandes_lignes_fichiers fic on fic.id_enr = p.id_fichier where p.id_enr = " & id_ordre
+	ouvrirtable mm_frans_string,rs,"select fichier_planche,h.indigonew as indigonew, fic.fichier_nom as fichier_nom, fic.id_com as id_com  from production_queue p inner join hotfolders h on p.ref=h.ref  inner join commandes_lignes_fichiers fic on fic.id_enr = p.id_fichier where p.statut='new' and p.id_enr = " & id_ordre
 	
 	if rs.eof then 
-	ajoutejournal "IMPRIMERIE",session("id_user"),id_com,"Erreur envoi DFE job "&id_ordre&" sur "&imprimante,id_ordre
+	ajoutejournal "IMPRIMERIE",session("id_user"),id_com,"Erreur envoi DFE job "&id_ordre&" existe pas ou statut nest pas new ",id_ordre
 	response.end
 	end if
 		fichier_planche = replace(v("fichier_planche"),"c:","\\plancheur")

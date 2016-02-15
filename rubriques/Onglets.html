@@ -1,4 +1,9 @@
+<ul class="list-unstyled list-inline">
+<li>
 <h2>ED Production Manager > Vous êtes connecté en tant que <span style='color:green'>{{User.Nom}}</span> </h2>
+</li>
+<li>  |  <input name="opencmd" id="opencmd" type="text" placeholder='Numéro de commande'  /><input onclick="window.location.href=('#/Commande/'+ $('#opencmd').val());" type="button" value='Ouvrir' /></li>
+</ul>
 
     <ul id="menuTabs" class="nav nav-tabs">
         <li ng-repeat = "onglet in Onglets" ng-class="{'active': onglet.Route == url}">
@@ -36,7 +41,8 @@
         	</div>
             
             <div class='col-lg-7'>
-       
+    
+  <span ng-show='showFiltreDate' > <!-- filtre date -->   
 <form class="form-inline">
             
   <div class="form-group">
@@ -70,8 +76,9 @@
   
  
   </div>
-</form>
-                      
+</form>  
+<!-- fin filtre date -->  
+         </span>             
             </div>
             
             

@@ -27,7 +27,7 @@ sql = sql & " LEFT OUTER JOIN Impression_statut i ON i.id_com = c.id_com AND i.i
 			sql = sql & " where (c.pao_needed='oui' )  and c.statut_commande = 'confirme' and i.statut = 'BATOK'"
 		 
 		case "PREPRESS"  'commande bat ok mais prepress needed manuelle
-			sql = sql & " where c.pao_needed='non' and c.prepress_needed='oui'  and c.statut_commande = 'confirme' " 'and i.statut = 'BATOK'"
+			sql = sql & " where c.pao_needed='non'   and c.statut_commande = 'confirme' and c.prepress_needed='oui' and (( groupe_canal<>'stan') or (groupe_canal ='stan' and i.statut='BATOK') ) " 'and i.statut = 'BATOK'"
 		
 		case else
 			sql = sql & " where c.pao_needed='oui' and c.statut_commande = 'confirme' and i.statut is null "
@@ -51,7 +51,9 @@ sql = sql & " LEFT OUTER JOIN Impression_statut i ON i.id_com = c.id_com AND i.i
 	
 	end select
 	
+	' filtre provisoire 
 	
+	sql = sql & " and (c.id_com >= 16011418) "
 	
 	
 

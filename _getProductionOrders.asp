@@ -33,10 +33,19 @@ if id_com <> "" then
 
 sql = sql & " where fics.id_com = " & id_com
 else
-sql = sql & " where q.statut='new' and c.statut_commande = 'confirme' and q.date_creation >= '"&date_debut&"' and q.date_creation <= '"&date_fin&"' "
+sql = sql & " where fics.id_com >= 16011418 and q.statut='new' and c.statut_commande = 'confirme' and q.date_creation >= '"&date_debut&"' and q.date_creation <= '"&date_fin&"' "
 
+
+
+select case request.querystring("statut_plancheur")
+case ""
 if ucase(request.querystring("imprimeur"))="PHASER" then sql = sql & "  and ( q.imprimeur = 'PHASER'  )" else  sql = sql & "  and (q.statut_plancheur=2) and ( q.imprimeur is null or q.imprimeur <> 'PHASER'  )"
 ' and q.fichier_planche is not null"
+
+case else
+sql = sql & "  and (q.statut_plancheur="&request.querystring("statut_plancheur")&") and ( q.imprimeur is null or q.imprimeur <> 'PHASER'  )"
+
+end select
 
 end if
 

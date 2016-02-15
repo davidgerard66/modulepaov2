@@ -35,7 +35,7 @@ ctr=0
 			 
 			  
 				if v("statut_bat") = "" then
-						statut_bat = "A préparer" 
+						statut_bat = "AUCUN" 
 				        else 
 						statut_bat = v("statut_bat") & " le " & v("date_bat")
 						end if
@@ -43,11 +43,15 @@ ctr=0
 			 
 			   pao_needed = v("pao_needed")
 			   prepress_needed = v("prepress_needed")
+			   production_autorise = v("production_autorise")
 			   
 			   if pao_needed = "oui" then pao_needed="true" else  pao_needed="false"
 			    if prepress_needed = "oui" then prepress_needed="true" else  prepress_needed="false"
+			 if production_autorise = "oui" then production_autorise = "true" else production_autorise = "false"
 			 
-			 commande = commande & """Id_com"": "&v("id_com")&", ""Id_web"": "&v("id_com_web")&", ""Canal"": """& v("groupe_canal") &""", ""Confirmation"": """& date_confirmation &""", ""Priorite"": """& v("groupe_priorite")&""", ""Nom"": """& v("Nom prenom")&""", ""Email"": """& v("Email")&""", ""BAT"": """&statut_bat&""", ""pao_needed_raison"": """&v("pao_needed_raison")&""",""pao_needed"": "&pao_needed&",""prepress_needed"": "&prepress_needed &", ""cheminsource"": ""\\\\brian\\DATA\\ED-PAO\\SOURCES\\"", ""Assignation"": """& assignation &""""
+			if  v("id_com_web")="" then id_com_web="0" else id_com_web =  v("id_com_web")
+			 
+			 commande = commande & """Id_com"": "&v("id_com")&", ""Id_web"": "&id_com_web&", ""Id_client"": "&v("id_client")&", ""Canal"": """& v("groupe_canal") &""", ""Confirmation"": """& date_confirmation &""", ""Priorite"": """& v("groupe_priorite")&""", ""Nom"": """& v("Nom prenom")&""", ""Email"": """& v("Email")&""", ""BAT"": """&statut_bat&""", ""pao_needed_raison"": """&v("pao_needed_raison")&""",""pao_needed"": "&pao_needed&",""prepress_needed"": "&prepress_needed &",""production_autorise"": "&production_autorise &", ""cheminsource"": ""\\\\brian\\DATA\\ED-PAO\\SOURCES\\"", ""Assignation"": """& assignation &""""
 			
 		ctr=ctr+1
 		rs.movenext
@@ -57,9 +61,12 @@ fermertable rs
 
 
 			
-				  sql = " Select cl.*, fic.fichier_nom as fichier_nom, fic.fichier_path as fichier_path, fic.fichier_source as fichier_source,fic.fichier_source_type as fichier_source_type,  a.groupe_stock_modele as typeArticle from commandes_lignes cl "
+				  sql = " Select cl.*, fic.imprimeur as imprimeur,fic.fichier_nom as fichier_nom, fic.fichier_path as fichier_path, fic.fichier_source as fichier_source,fic.fichier_source_type as fichier_source_type,  a.groupe_stock_modele as typeArticle " &_
+				  " , q.id_enr as id_ordre, q.statut as statut_ordre, q.statut_plancheur as statut_plancheur" &_
+				  " from commandes_lignes cl "
 				  sql = sql & " left outer join articles a on a.ref=cl.ref "
 			sql = sql & " left outer join commandes_lignes_fichiers as fic on fic.id_ligne = cl.id_enr "
+			sql = sql & " left outer join production_queue as q on q.id_fichier = fic.id_enr "
 			sql = sql & " where cl.id_com = " & id_com & " and ( cl.ref not like 'ac%' and cl.ref not like 'e%' and cl.ref not like 'dg%' and cl.ref not like 't%' ) order by cl.id_enr asc"
 			
 			'response.write(sql)
@@ -74,10 +81,13 @@ fermertable rs
 					fichier_source = v("fichier_source")
 					fichier_source_type = v("fichier_source_type")
 					
+					id_ordre = v("id_ordre")
+					statut_ordre = v("statut_ordre")
+					statut_plancheur = v("statut_plancheur")
 				
 					
 							if ctr > 0 then contenu = contenu & ","
-							contenu = contenu &"{""index"":"&ctr+1&",""id_ligne"": "&v("id_enr")&", ""ref"": """&v("ref")&""", ""quantite"": "& v("quantite") &",""typearticle"": """&UCASE(v("typearticle"))&""",""imprime"": """&v("impression")&""",""fichier_source"":"""&fichier_source&""",""fichier_source_type"":"""&fichier_source_type&""",""fichier"": """&fichier_nom&""",""chemin"": """&replace(fichier_path,"\","\\")&""""
+							contenu = contenu &"{""index"":"&ctr+1&",""id_ligne"": "&v("id_enr")&", ""ref"": """&v("ref")&""", ""quantite"": "& v("quantite") &",""typearticle"": """&UCASE(v("typearticle"))&""",""imprimeur"": """&v("imprimeur")&""",""imprime"": """&v("impression")&""",""fichier_source"":"""&fichier_source&""",""fichier_source_type"":"""&fichier_source_type&""",""id_ordre"": """&id_ordre&""",""statut_ordre"": """&statut_ordre&""",""statut_plancheur"": """&statut_plancheur&""",""fichier"": """&fichier_nom&""",""chemin"": """&replace(fichier_path,"\","\\")&""""
 					        
 							if fichier_nom <> "" then 
 							     

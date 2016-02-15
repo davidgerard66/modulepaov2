@@ -33,11 +33,11 @@ response.write("<br>" & destination)
 'Response.BinaryWrite CanvasStream.Read
 'Write binary to File
 
-														Set objFSO = CreateObject("Scripting.FileSystemObject")
-																If not objFSO.FolderExists("D:\ED-PAO\PROD\"&id_com) Then 
-																		objFSO.CreateFolder("D:\ED-PAO\PROD\"&id_com) ' creation du dossier cmd 
-														        end if
-														set objFSO=nothing
+														'Set objFSO = CreateObject("Scripting.FileSystemObject")
+															'	If not objFSO.FolderExists("D:\ED-PAO\PROD\"&id_com) Then 
+															'			objFSO.CreateFolder("D:\ED-PAO\PROD\"&id_com) ' creation du dossier cmd 
+														  '      end if
+														'set objFSO=nothing
 
 Dim CanvasStream
 Set CanvasStream = Base64Data2Stream(databin)
