@@ -18,17 +18,15 @@ sql = sql & " LEFT OUTER JOIN Impression_statut i ON i.id_com = c.id_com AND i.i
 	select case ucase(grille)
 	
 		case "NEW"
-			sql = sql & " where c.pao_needed='oui' and c.statut_commande = 'confirme' and i.statut is null "
-	
+			sql = sql & " where c.pao_needed='oui' and c.statut_commande = 'confirme' and ( (i.statut is null) or i.statut in ('BATNO','BATCO','ATT')) "
 		case "BAT"
 			sql = sql & " where c.pao_needed='oui'  and c.statut_commande = 'confirme' and i.statut = 'BAT'"
-		
-		case "BATOK"
-			sql = sql & " where (c.pao_needed='oui' )  and c.statut_commande = 'confirme' and i.statut = 'BATOK'"
+		case "STAN"
+			sql = sql & " where (c.pao_needed='oui' )  and (c.statut_commande = 'confirme') and  ( i.statut = 'BATOK' or groupe_activite='vierge' OR groupe_priorite='CLAIM' ) "
 		 
 		case "PREPRESS"  'commande bat ok mais prepress needed manuelle
-			sql = sql & " where c.pao_needed='non'   and c.statut_commande = 'confirme' and c.prepress_needed='oui' and (( groupe_canal<>'stan') or (groupe_canal ='stan' and i.statut='BATOK') ) " 'and i.statut = 'BATOK'"
-		
+			sql = sql & " where c.pao_needed='non'   and c.statut_commande = 'confirme' and c.prepress_needed='oui' and (( groupe_canal not in ('stan','fp')) or ( groupe_priorite='claim') or (groupe_canal in ('stan','fp') and " &_
+			" (i.statut='BATOK' or groupe_activite in ('vierge','pod') )   ) ) " 'and i.statut = 'BATOK'"
 		case else
 			sql = sql & " where c.pao_needed='oui' and c.statut_commande = 'confirme' and i.statut is null "
 			
@@ -39,20 +37,16 @@ sql = sql & " LEFT OUTER JOIN Impression_statut i ON i.id_com = c.id_com AND i.i
 	
 		case "PART"
 			sql = sql & " and groupe_canal in ('PART','XMAS') "
-	
 		case "STAN"
 			sql = sql & " and groupe_canal in ('STAN') "
-		 
 		case "AUTRES"
 			sql = sql & " and groupe_canal not in ('PART','XMAS','STAN') "
 		case else  'commande bat ok mais prepress needed manuelle
 			sql = sql 
-		
 	
 	end select
 	
 	' filtre provisoire 
-	
 	sql = sql & " and (c.id_com >= 16011418) "
 	
 	

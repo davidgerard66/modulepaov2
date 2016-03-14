@@ -7,6 +7,10 @@ angular.module('AppliPao', ['ngRoute'])
 			templateUrl: 'rubriques/journal.html',
 			controller: 'mainController'
 		  })
+		  .when('/JournalIndigo', {
+			templateUrl: 'rubriques/journalimprimerie.html',
+			controller: 'mainController'
+		  })
 		  .when('/Commandes/:statut_bat/:groupe_canal', {
 			templateUrl: 'rubriques/Commandes.html',
 			controller: 'mainController'
@@ -32,7 +36,7 @@ angular.module('AppliPao', ['ngRoute'])
 			Route:'/Commandes/New/Part' },
 
 		{	Label:'Allemagne > A TRAITER',Title:'Commandes Allemande en attente de PAO',
-			Route:'/Commandes/BATOK/STAN' },
+			Route:'/Commandes/STAN/STAN' },
 
 		{	Label:'Autres > A TRAITER',	Title:'Commandes export,revendeurs etc, en attente de PAO',
 			Route:'/Commandes/new/AUTRES' },
@@ -40,22 +44,30 @@ angular.module('AppliPao', ['ngRoute'])
 		{	Label:'BAT en cours', Title:'Commandes avec BAT non validé',
 			Route:'/Commandes/bat/tout' },
 
-		{	Label:'A préparer pour presse', Title:'Commandes fichiers manquants ou a préparer pour impression',
+		{	Label:'A préparer presse', Title:'Commandes fichiers manquants ou a préparer pour impression',
 			Route:'/Commandes/prepress/tout' },
 
-		{	Label:'Journal', Title:'Log de tous les évènements à l\'horizon, aucun rapport avec les trous noirs',
-			Route:'/Journal' },
+	//	{	Label:'Journal', Title:'Log de tous les évènements à l\'horizon, aucun rapport avec les trous noirs',
+	//		Route:'/Journal' },
 
 		{	Label:'Imprimerie',	Title:'Imprimerie c l\'imprimerie... ',
-			Route:'/Imprimerie/Indigo' },
+			Route:'/Imprimerie/Indigo' 
+		},
+		{	Label:'Imprimerie Naiss + exp',	Title:'Imprimerie c l\'imprimerie... ',
+			Route:'/Imprimerie/IndigoN' 
+		},
+
+		{	Label:'Histo Indigo', Title:'Historique rip',
+			Route:'/JournalIndigo'
+		},
 
 		{	Label:'Repiquage', Title:'Impressions Phaser en attente',
 			Route:'/Imprimerie/Phaser'
 		},
-		{	Label:'Attente Plancheur', Title:'Attente plancheur',
+		{	Label:'Plancheur', Title:'Attente plancheur',
 			Route:'/Plancheur/0'
 		},
-		{	Label:'Bloqués Plancheur', Title:'Bloqué plancheur',
+		{	Label:'Bloqués', Title:'Bloqué plancheur',
 			Route:'/Plancheur/1'
 		}
 		
@@ -67,11 +79,12 @@ angular.module('AppliPao', ['ngRoute'])
    $scope.UserData =[]
    $scope.commandes = [];
    $scope.expediable = false;
+   $scope.encours = "";
    $scope.isLoading=true;
    $scope.Imprimante='';
    $scope.showJobSendingLog=false;
    $scope.readyToSend = false;
-   $scope.maxSendingJobs = 30;
+   $scope.maxSendingJobs = 70;
    $scope.casejob=[];
    $scope.isSendingJobs = false;
    $scope.pendingJobs =0;
@@ -105,6 +118,7 @@ angular.module('AppliPao', ['ngRoute'])
 			console.log("ok");
 			$scope.showZA = false;
 			$scope.showExpedition = true;
+			
 
 			// chargement picking list
 			$http.get('_getCommandeExpedition.asp',{params : {id_com : idcom}}).
@@ -172,6 +186,7 @@ angular.module('AppliPao', ['ngRoute'])
   };
   // champs afficher dans la grille
   $scope.filtreperso = {};
+  
   $scope.champsCommandes = [
    				   'Id_com',
                    'Id_web',
@@ -186,19 +201,36 @@ angular.module('AppliPao', ['ngRoute'])
 	  'jobs_phaser',
 				   'Assignation'
 				   ];
+
     $scope.champsJournal = [
    				   {'champ':'user.nom','label':'Utilisateur'},
                    {'champ':'date_creation','label':'effectué le'},
 				   {'champ':'id_com','label':'Commande'},
 					{'champ':'id_ordre','label':'JOB'},
 					{'champ':'ref','label':'Réf'},
-					{'champ':'quantite','label':'Quantité'},
+					{'champ':'quantite','label':'Qte cartes'},
+				{'champ':'qfeuilles','label':'Qte feuilles'},
+				{'champ':'imprimante','label':'Imprimante'},
 				   {'champ':'Action','label':'Action'},
 				   ];
+
+$scope.champsJournalImprimerie = [
+   				  
+                   {'champ':'date_creation','label':'effectué le'},
+				   {'champ':'id_com','label':'Commande'},
+					{'champ':'id_ordre','label':'JOB'},
+					{'champ':'ref','label':'Réf'},
+					{'champ':'quantite','label':'Qte cartes'},
+				{'champ':'qfeuilles','label':'Qte feuilles'},
+				{'champ':'imprimante','label':'Imprimante'},
+				   {'champ':'Action','label':'Action'},
+				   ];
+
+
 	$scope.champsProductionOrders = [
 		{'champ':'Id_com','label':'Commande'},
 		{'champ':'priorite','label':'Priorité'},
-		{'champ':'id_ordre','label':'Job'},
+		//{'champ':'id_ordre','label':'Job'},
 		//{'champ':'imprimeur','label':'Imprimeur'},
 		{'champ':'date_creation','label':'Date ordre'},
 		{'champ':'code_planche','label':'Format'},
@@ -206,28 +238,29 @@ angular.module('AppliPao', ['ngRoute'])
 		//{'champ':'scodix','label':'SX'},
 		//{'champ':'vernistotal','label':'UV'},
 		{'champ':'finition','label':'Finition'},
-		{'champ':'decoupe','label':'Découpe'},
+		//{'champ':'decoupe','label':'Découpe'},
 		{'champ':'ref','label':'Référence'},
-		{'champ':'feuilles','label':'Nb feuilles'},
+		{'champ':'feuilles','label':'Nb feuilles'}
 		//{'champ':'quantite','label':'Qté'},
 		//{'champ':'fichier_planche','label':'Fichier planche'},
-		{'champ':'type_ordre','label':'type d\'ordre'}
+		//{'champ':'type_ordre','label':'type d\'ordre'}
 		//{'champ':'raison_ordre','label':'motif'}
 	];
 	
 	 $scope.champsCommandelignes = [
-   				   {'champ':'index','label':'Ligne'},
+   				   {'champ':'index','label':'Idx'},
 				   {'champ':'typearticle','label':'Type'},
 				   {'champ':'ref','label':'Article'},
-                   {'champ':'quantite','label':'Quantité'},
-				   {'champ':'imprime','label':'Impression'},
+                   {'champ':'quantite','label':'Qté'},
+				   {'champ':'imprime','label':'Imp'},
 				   {'champ':'fichier','label':'fichier'},
 				    {'champ':'fichier_source','label':'source'},
 				   {'champ':'chemin','label':'dossier'},
 				   //{'champ':'id_ordre','label':'Id job'},
 				   {'champ':'imprimeur','label':'Imprimeur'},
 				   {'champ':'statut_ordre','label':'Etat du job'},				
-				   {'champ':'statut_plancheur','label':'Statut planche'}
+				   {'champ':'statut_expedition','label':'Statut Expedition'},
+				   {'champ':'actions','label':'Epreuves'}
 				   ];
   
   // champs filtrable 
@@ -240,17 +273,16 @@ angular.module('AppliPao', ['ngRoute'])
 							
 						  ];
 
+
 		$scope.champsAfiltrerImprimerie = [
-			{'champ':'genre', 'label':'Genre'},
+			{'champ':'g', 'label':'Genre'},
 			{'champ':'papier', 'label':'Papier'},
 			//{'champ':'scodix','label':'Scodix'},
 			//{'champ':'vernistotal','label':'Vernis'},
 			{'champ':'finition','label':'Finition'},
-			{'champ':'decoupe','label':'Découpe'},
+			//{'champ':'decoupe','label':'Découpe'},
 			{'champ':'priorite','label':'Priorité'},
 			{'champ':'code_planche','label':'Format'}
-
-
 		];
 
   $scope.CliqueCellule = function(commande,champ) {
@@ -327,12 +359,17 @@ angular.module('AppliPao', ['ngRoute'])
 
   }
 
-  $scope.commandeHasJobs = function(commande) {
+  $scope.commandeHasJobs = function(lacommande) {
 
-        var hasjob = false; // tous les fichiers existent
-  		angular.forEach(commande.contenu, function (ligne, key) {
+        var hasjob = false; 
+
+        if (lacommande != undefined) {
+
+       
+  		angular.forEach(lacommande.contenu, function (ligne, key) {
 					  
 					if( ligne.id_ordre!="" && ligne.statut_ordre!='annule') { 
+						console.log(ligne.ref)
 					   hasjob =  true
 					}
 					
@@ -342,6 +379,7 @@ angular.module('AppliPao', ['ngRoute'])
   			return true
   		}
 
+  	}
 
   }
 
@@ -478,6 +516,28 @@ $scope.searchCommande='';
 						
 	  				  };
 	
+
+
+$scope.validecontrole = function(commande) {
+
+var visa_user = confirm("Confirmer que le controle est effectué?");
+if (visa_user) {
+			$scope.isLoading = true;
+			$http.get('http://www.faire-part-creatif.com/edc/modifiercontrole.asp', {params: {id_com: commande.Id_web, redirect :'non'}}).
+						success(function (data, status, headers, config) {
+							alert('Controle ok');
+							$scope.LoadCommande();
+						}).
+						error(function (data, status, headers, config) {
+							$scope.isLoading = false;
+							$scope.LoadCommande();
+							console.log("erreur de l'application l499");
+						});
+
+};
+
+};
+
 	$scope.deverouilleStan = function(commande) {
 		// cette fonction supprime les fichiers d'une commande allemande groupe_canal = 'stan'
 		// et re-init les champs sendpdf du detailcommande du site allemand
@@ -693,6 +753,39 @@ $scope.isLoading=false;
 										}
   };
 
+// duplique igne dans commande
+$scope.ajoutelignefichier = function(commande,id_ligne,fichier_path,ref,quantite,imprime){
+
+    var id_com =commande.Id_com;
+    var indice =commande.contenu.length+1;
+
+var confirmation_user = confirm('Confirmez-vous la création de la ligne ' + ref + ' x ' + quantite + ' imprimé:'+imprime+'?');
+if (confirmation_user) {
+
+	$http.get('_setAjoutelignefichier.asp',{params:{
+													id_com : id_com,
+													id_ligne : id_ligne,
+													ref : ref,
+													indice : indice,
+													imprime : imprime,
+													quantite :quantite,
+													fichier_path : fichier_path,
+	}}).
+				success(function(data, status, headers, config) {
+					alert(data)
+					$scope.LoadCommande();
+				}).
+				error(function(data, status, headers, config) {
+					// log error
+					alert("erreur ajouteligne L719");
+					$scope.LoadCommande();
+				});
+
+
+			} // confirmation user
+
+};
+
    // generation des data 
    $scope.LoadJournal = function() {
 		   $scope.isLoading=true;
@@ -714,7 +807,7 @@ $scope.isLoading=false;
 			$scope.isLoading=true;
 			$http.get('_getJournalPao.asp',{params:{etape:'imprimerie'}}).
 				success(function(data, status, headers, config) {
-					$scope.journalImprimerie = data;
+					$scope.journal = data;
 					$scope.isLoading=false;
 
 				}).
@@ -732,6 +825,7 @@ $scope.isLoading=false;
    // generation des data 
    $scope.LoadImprimerie = function(jobDateDebut, jobDateFin) {
        imprimeur = $routeParams.imprimeur;
+       if (imprimeur != 'Phaser' && imprimeur != 'Indigo' && imprimeur != 'IndigoN') {alert('route incorrecte'); return false}
 	   if (imprimeur =='Phaser') {$scope.showPhaser = true}
 	   $scope.isLoading=true;
 	console.log("$scope.jobDateDebut : "+$scope.jobDateDebut);
@@ -747,7 +841,7 @@ $scope.isLoading=false;
 			   alert("erreur de l'application");
 		   });
 
-	   $scope.LoadJournalImprimerie();
+	  // $scope.LoadJournalImprimerie();
 		 
    };
 
@@ -831,7 +925,8 @@ $scope.isLoading=false;
 				$scope.isSendingJobs = true;
 				angular.forEach($scope.jobsAImprimer, function (job, key) {
 					//alert(job.id_ordre);
-					$scope.sendToIndigo(job.id_ordre, false, false);
+					if ($scope.imprimeur == 'Indigo' || $scope.imprimeur == 'IndigoN' || $scope.imprimeur == undefined) {$scope.sendToIndigo(job.id_ordre, false, false) } else {$scope.sendToPhaser(job.id_ordre, true)};
+
 				});
 			}
 
@@ -861,36 +956,102 @@ $scope.isLoading=false;
 						alert(data);
 						if ($scope.pendingJobs==0) {
 							$scope.isSendingJobs=false;
-							$location.path('/Imprimerie/Indigo');
+							$location.path('/Imprimerie/'+$scope.Imprimeur);
 							$scope.isLoading=false;
 						}
 					});
 			}
 		};
 
+		$scope.sendToPhaser = function(id_ordre, avec_confirm) {
+		
+			if (avec_confirm) {
+			var confirmation_user = confirm('Impression sur Phaser des jobs sélectionnés terminée ? ');}
+			else {var confirmation_user=true}
+
+			if (confirmation_user) {
+				$scope.isLoading=true;
+	
+				$http.get('_sendToPhaser.asp',{params : {id_ordre : id_ordre}}).
+					
+					success(function(data, status, headers, config) {
+						$scope.pendingJobs  = $scope.pendingJobs - 1;
+						if ($scope.pendingJobs==0) {$scope.isSendingJobs=false;$scope.LoadImprimerie();}
+						$scope.isLoading=false;
+					}).
+					error(function(data, status, headers, config) {
+						$scope.pendingJobs  = $scope.pendingJobs - 1;
+						alert("erreur envoi du job " + id_ordre);
+						alert(data);
+						if ($scope.pendingJobs==0) {
+							$scope.isSendingJobs=false;
+							$location.path('/Imprimerie/Phaser');
+							$scope.isLoading=false;
+						}
+					});
+			}
+		};
+
+$scope.RelanceJob = function(id_ordre,quantite,imprimante,raison_ordre, id_com) {
+
+
+	//alert('[specimen]relance a lidentique du job ' + id_com+' '+id_ordre + ' x ' + quantite + ' sur ' + imprimante + ' car ' + raison_ordre   );
+	
+	if ( imprimante==undefined || raison_ordre==undefined) { alert('il faut remplir les choix.');return false};
+	var confirmation_user = confirm('Confirmer la réédition du job ' + id_ordre + ' x ' + quantite + ' feuilles sur' + imprimante +'??');
+if (confirmation_user) {
+
+	
+
+			$http.get('_setRelanceJob.asp',{params : {
+													 id_com : id_com,
+													 id_ordre : id_ordre,
+													 imprimante: imprimante, 
+													 raison_ordre : raison_ordre,
+													 quantite : quantite}}).
+
+								success(function(data, status, headers, config) {
+										
+										alert('le nouveau job est le ' + data)
+										$scope.showRelance=false;
+								}).
+								error(function(data, status, headers, config) {
+									alert('erreur L897 ' + data)
+								});
+
+
+
+		} // end confirmation_user
+
+};
 
 		$scope.StopImpression = function(commande) {
-
-			
 			
 			var confirmation_user = confirm('Annulation des jobs de ' + commande.Id_com + '?');
-			
 
 			if (confirmation_user) {
 				
 				$scope.isLoading=true;
 				
-				angular.forEach(commande.contenu, function (job, key) {
-					
-					if (job.id_ordre!='') {	$scope.setStatutJob(job.id_ordre, 'annule', commande.Id_com)}
-
-				});
-
+				$scope.annuleJobs(commande.Id_com);
 				$scope.setStatutCommande(commande.Id_com,'oui','non','annulation job','non');
 				$scope.isLoading=false;
 				$scope.LoadCommande();
 
 			}
+		};
+
+
+		$scope.annuleJobs = function(id_com) {
+ 				
+ 				$http.get('_setStopImpression.asp',{params : {id_com : id_com}}).
+				  success(function(data, status, headers, config) {
+				   alert('tous les jobs de la commande sont annulés')
+				  }).
+				error(function(data, status, headers, config) {
+					alert("erreur annulation jobs");
+				});
+
 		};
 		
 		$scope.setStatutJob = function(id_job,statut_job,id_com){
@@ -916,6 +1077,22 @@ $scope.isLoading=false;
 			 
 	   };
 
+
+	   $scope.setPAO_visa_expedition = function(commande){
+
+				//alert(commande.PAO_visa_expedition);
+ 				$http.get('_setPAO_visa_expedition.asp',{params : {id_com : commande.Id_com , PAO_visa_expedition : commande.PAO_visa_expedition  }}).
+				  success(function(data, status, headers, config) {
+				    console.log("visapaoexped ok")
+				  }).
+				error(function(data, status, headers, config) {
+					alert("erreur l1061 visapaoexped");
+				});
+	   };
+
+
+
+
 		// generation des notes
 	   $scope.LoadNotes = function() {
 			   $http.get('_getCommandeNotes.asp',{params : {id_com : $scope.commande.Id_com}}).
@@ -940,8 +1117,11 @@ $scope.isLoading=false;
 			   };
 
 
-			$scope.EnvoyerBat = function(commande){
+			$scope.EnvoyerBat = function(commande,pao_comment){
 
+
+//alert(pao_comment);
+//return false;
 
 					 if (!($scope.isReadyToProduce(commande))) {return false}
 
@@ -949,7 +1129,11 @@ $scope.isLoading=false;
 
 			$scope.isLoading=true;
 
-				  $http.get('http://plancheur/ed/modules/pao/_setBatEnvoye.asp',{params : {Id_com : commande.Id_com,Id_com_web : commande.Id_web,Id_client : commande.Id_client}}).
+				  $http.get('http://plancheur/ed/modules/pao/_setBatEnvoye.asp',{params : {Id_com : commande.Id_com,
+																						  	Id_com_web : commande.Id_web,
+																						  	Id_client : commande.Id_client,
+																						  	pao_comment : pao_comment
+																						  }}).
 				success(function(data, status, headers, config) {
 					
 						if (data.bat_web ==true) {
@@ -957,7 +1141,7 @@ $scope.isLoading=false;
 						} else {
 							alert("Le bat a été préparé placé dans le hotfolderbatMail")
 						}
-						$scope.setStatutBat(commande.Id_com,'BAT',data.bat_web)
+						$scope.setStatutBat(commande.Id_com,'BAT',data.bat_web, pao_comment)
 						$scope.LoadCommande();
 				 		$scope.isLoading=false;
 
@@ -971,9 +1155,9 @@ $scope.isLoading=false;
 			 }
 	   };
    
-	   		$scope.setStatutBat = function(id_com,statut_bat, is_bat_web){
+	   		$scope.setStatutBat = function(id_com,statut_bat, is_bat_web,pao_comment){
 
-				  $http.get('_setStatutBat.asp',{params : {Id_com : id_com,statut_bat: statut_bat, is_bat_web : is_bat_web}}).
+				  $http.get('_setStatutBat.asp',{params : {Id_com : id_com,statut_bat: statut_bat, is_bat_web : is_bat_web,pao_comment : pao_comment}}).
 				  success(function(data, status, headers, config) {
 				 
 				  }).
@@ -1000,16 +1184,23 @@ $scope.isLoading=false;
 		document.title = 'Journal ';
 
         break;
+    case '/JournalIndigo':
+	       $scope.LoadJournalImprimerie();
+		document.title = 'HistoIndigo ';
+
+        break;
     case '/Commandes':
         $scope.LoadGrille($routeParams.statut_bat,$routeParams.groupe_canal);
         document.title = 'CMD '+ $routeParams.statut_bat+' - '+$routeParams.groupe_canal ;
         break;
+
 	case '/Imprimerie':
-		 
+		  $scope.imprimeur = $routeParams.imprimeur
 		  $scope.showFiltreDate = true; 
 		  $scope.LoadImprimerie();
 		  document.title = 'Imprimerie' ;
 		  break;
+
 	case '/Commande':
 		$scope.LoadCommande($routeParams.idcommande);
 		document.title = $routeParams.idcommande ;
@@ -1047,6 +1238,14 @@ $scope.isLoading=false;
         return uniqueList;
     };
 
+})
+
+.filter('startFrom', function() {
+    return function(input, start) {
+    	if (typeof input == 'undefined'){return;} 
+        start = +start; //parse to int
+        return input.slice(start);
+    }
 })
 
 .directive("datepicker", function () {

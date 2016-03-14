@@ -1,0 +1,71 @@
+<div ng-include="'Rubriques/Onglets.html'"></div>
+
+<div id='divJournal'>
+  <table class="table table-bordered">
+                    <thead>
+                      <tr>
+                         <td ng-repeat="champ in champsJournalImprimerie">
+                          <a href="#" ng-click="$parent.sortType = champ.champ; $parent.sortReverse = !($parent.sortReverse)">
+                           {{ champ.label }}
+                          <span ng-show="$parent.sortType == champ.champ && !($parent.sortReverse)" class="fa fa-caret-down"></span>
+                            <span ng-show="$parent.sortType == champ.champ && $parent.sortReverse" class="fa fa-caret-up"></span>  
+                          </a>
+                        </td>
+                        
+                        <td>statut actuel</td>
+                        <td>dfe</td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="activite in journal | orderBy:sortType:sortReverse | filter:searchCommande " style='background-color:white'>
+                        
+                         <td>
+                         {{ activite.date_creation}}
+                         </td>
+                         <td>
+                         {{ activite.id_com}}
+                         </td>
+                         <td>
+                         {{ activite.id_ordre}}
+                         </td>
+                            <td>
+                         {{ activite.ref}}
+                         </td>
+                           <td>
+                         {{ activite.quantite}}
+                         </td>
+                          <td>
+                         {{ activite.qfeuilles}}
+                         </td>
+                           <td>
+                         {{ activite.imprimante}}
+                         </td>
+                            <td>
+                         {{ activite.activite}}
+                         </td>
+                          <td>
+                         {{ activite.statut_ordre}}
+                         </td>
+                           <td>
+                         <button ng-show="activite.statut_ordre=='rippé'" ng-click="contenu.showRelance=true;">relancer</button>
+                      			    <div ng-show="contenu.showRelance" style='width:200px;' >
+                                    Feuilles à relancer<br />
+									<input ng-model='activite.qfeuilles' type='text' style='width:80px;'/>
+                                    <br />
+                                        <input type="radio" id="imp" ng-model="imprimante" value='HP1' />HP1
+                                        <input type="radio" id="imp" ng-model="imprimante" value='HP2' />HP2
+                                        
+                                     <select ng-model="raison_ordre">
+                                     <option value='MAC'>Pb machine</option>
+                                      <option value='PAO'>PAO</option>
+                                       <option value='IMP'>Imp defectueuse</option>
+                                     </select>
+                                    <button ng-click="RelanceJob(activite.id_ordre,activite.qfeuilles,imprimante,raison_ordre,activite.id_com)" class="btn btn-success">Imprimer</button>
+                                    <button ng-click="contenu.showRelance=false" class="btn btn-info">Quitter</button>
+                                    
+                                    </div>
+                         </td>
+                      </tr>
+                    </tbody></table>
+
+</div>

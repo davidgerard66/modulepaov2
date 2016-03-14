@@ -9,13 +9,25 @@
                    <div class="col-lg-8">
   <h1>{{commande.Id_com}}-<a href='http://www.faire-part-creatif.com/edc/detailcommandefpc.asp?id_com={{commande.Id_web}}' target='_blank'>{{commande.Id_web}}</a>   
   <span ng-show="commande.pao_needed" >{{commande.pao_needed_raison}}</span> 
-  <span ng-show="!commande.pao_needed && commande.prepress_needed" >FICHIERS A PREPARER</span>  
+  <span ng-show="!commande.pao_needed && commande.prepress_needed" >FICHIERS A PREPARER</span>  <span style='font-size:14px;'>| la commande est {{ commande.statut_commande}}</span>
+  <span ng-show="commande.controle=='oui'">
+ 
+  
+  		<span class='alert alert-success' ng-if="commande.pao_controle_ok=='oui'" style='padding:4px;margin-left:10px;font-size:14px;'>Controle OK  le {{commande.pao_controle_ok_date}}</span>
+        <span class='' ng-if="commande.pao_controle_ok==''" style='padding:4px;margin-left:10px;font-size:14px;'>  <button style='padding:4px;' ng-click="validecontrole(commande)" class='btn btn-default'>Cliquez-ici pour valider le controle</button></span>
+        
+  
+  
+  </span> 
    </h1>
                                                
                                    <table class="table table-bordered table-striped">
                                     <thead>
                                       <tr>
-                                       <td>BAT</td><td>Assignation</td><td>Priorité</td> <td>Pao_needed</td><td>Prepress_needed</td><td>Production_autorise</td>
+                                       <td>BAT</td><td>Assignation</td><td>Priorité</td> 
+                                       <td>ref client</td>
+                                       <td>Pao_needed</td><td>Prepress_needed</td><td>Production_autorise</td>
+                                       <td>Bloquer expedition</td>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -23,9 +35,11 @@
                                       <td> {{commande.BAT}}  </td>
                                       <td> {{commande.Assignation}}</td>
                                       <td>{{commande.Priorite}}</td>
+                                       <td>{{commande.ref_client}}</td>
                                        <td>{{commande.pao_needed}}</td>
                                         <td>{{commande.prepress_needed}}</td>
                                          <td>{{commande.production_autorise}}</td>
+                                          <td><input type='checkbox' ng-click="setPAO_visa_expedition(commande)" ng-model="commande.PAO_visa_expedition" ng-checked="commande.PAO_visa_expedition"/></td>
                                       
                                       </tr>
                                     </tbody>
@@ -41,7 +55,7 @@
                                                 <li>	Client : {{commande.Id_client}} - {{commande.Nom}}</li>
                                                  <li>	Email : {{commande.Email}}</li>
                                                <li>	Canal : {{commande.Canal }}</li>
-                                               <li>	Confirmé le : {{commande.Confirmation }}</li>
+                                               <li>	{{commande.statut_commande}} le : {{commande.date_statut_commande }}</li>
                                                <li ng-click="isLoading=true">test</li>
                                        
                                        </ul>
@@ -74,6 +88,26 @@
                          <td>{{contenu.typearticle}}</td>
                          <td>
                          <a target="_blank" style='text-decoration:none; color:black' href='https://www.google.fr/search?site=&source=hp&&gs_l=hp.7...0.0.1.10211.0.0.0.0.0.0.0.0..0.0....0...1c..64.hp..1.23.1690.MHrSV1voDKs&&q=faire+part+creatif+{{ contenu.ref}}&oq=faire+part+creatif+{{contenu.ref}}&btnI=1'>{{ contenu.ref}}</a>
+                         
+                         
+                                  
+                                 <a title="Ajouter un fichier" ng-if="contenu.chemin!=''" class='btn btn-info'  style='padding:4px;'ng-hide="contenu.showDuplique"> <i style='font-size:18px;' ng-click="contenu.showDuplique=true;" class="glyphicon glyphicon-resize-full"></i></a>
+                                 
+                         
+                         
+                         
+                      			    <div ng-show="contenu.showDuplique" style="width:150px" >
+                                     Créer réf :
+									<input ng-model='duplique_ref' type='text' style='width:80px;'/>
+                                      
+                                        <input type="radio" id="imp" ng-model="duplique_imprime" value='non' />vierge
+                                        <input type="radio" id="imp" ng-model="duplique_imprime" value='oui' />imprimé
+                                    <button ng-click="ajoutelignefichier(commande,contenu.id_ligne,contenu.chemin,duplique_ref,contenu.quantite,duplique_imprime)" class="btn btn-success">Créér</button>
+                                    <button ng-click="contenu.showDuplique=false" class="btn btn-info">Quitter</button>
+                         
+                              </div> 
+                        
+                         
                          </td>
                          
                          <td>
@@ -86,13 +120,36 @@
                          <td ng-class="{'droptarget':!contenu.existe && contenu.chemin}" style='padding:0px;'> 
                          
                         <p ng-if="contenu.existe" style='padding:4px;'>
-                         <a  ng-click="Assigne(commande,User);LanceShell(contenu.chemin+contenu.fichier,'','')" class="btn btn-info" title="Ouvrir avec le logiciel par defaut"> {{ contenu.fichier}} <img src="logo_pdf.png" width="24" style='margin-left:10px;'>
+                         <a  ng-click="Assigne(commande,User);LanceShell(contenu.chemin+contenu.fichier,'','')" 
+                         			ng-class="{'btn btn-default':contenu.support=='planche',
+                                    			'btn btn-info':contenu.support!='planche',
+                                                'btn btn-danger':contenu.erreurformat!='ok' && contenu.erreurformat!=''}" 
+                                    style='padding:9px;' title="Ouvrir avec le logiciel par defaut"> {{ contenu.fichier}} <img src="logo_pdf.png" width="24" style='margin-left:4px;'>
                          </a>
-                         <a  ng-click="Assigne(commande,User);LanceShell(contenu.chemin+contenu.fichier,'','IS')" title="Ouvrir avec Illustrator"  class="btn btn-info">
+                         <a  ng-click="Assigne(commande,User);LanceShell(contenu.chemin+contenu.fichier,'','IS')" title="Ouvrir avec Illustrator"  class="btn btn-info" style='padding:9px;'>
                          <img src="logo_is.png" width="24">
-                         </a> <span style='font-style:italic;font-size:11px;'> Modifié le {{contenu.date_modification}}</span>
+                         </a> 
+                         <a ng-click=" contenu.dropable=true;contenu.existe=false;" ng-model="dropable" class="btn btn-info" title='beta : ne fonctionne pas' style='padding:9px;' ><i class='glyphicon glyphicon-cloud-download' style='float:right;font-size:24px;' ></i></a>
+                       <br /> <span ng-if="contenu.erreurfichier" style='color:red; font-size:24px'>Fichier endommagé</span>
+                         
+                         
+                      
+                         <p ng-show="contenu.nb_pages_pdf!=''">
+                                         
+                         <span style='font-style:italic;font-size:11px;'> 
+                         <!--<img ng-if="contenu.support=='planche'" src='planche.png' width=40/> -->
+                         fichier {{contenu.support}} {{contenu.taille}} modifié le {{contenu.date_modification}} ({{contenu.nb_pages_pdf}} 
+                         page<span ng-if="contenu.nb_pages_pdf>1">s</span>, {{contenu.longueur_pdf}} x {{contenu.hauteur_pdf}})</span>
+                           <br /> <span style='font-style:italic;font-size:11px;'>  {{contenu.infoformat}} </span>
+                         
+                                   <span ng-if="contenu.erreurformat=='ok'">  <br />-> cohérence réf - fichier ok </span>
+                                    <span ng-if="contenu.erreurformat==''"> <br />-> cohérence non vérifiable </span>
+                                    <span ng-if="(contenu.erreurformat!='ok' && contenu.erreurformat!='')" style='color:red'> <br />-> {{contenu.erreurformat}} </span>
+                                    
+                         </p>
+                         
                        </p>
-                       
+                        
                          
                           <div ng-if="contenu.chemin && !contenu.existe" ondrop="drop(event,$(this))"  ondragleave="leaveDrop($(this))"   ondragover="allowDrop(event,$(this))" style='height:100%'  >
                                  
@@ -103,6 +160,7 @@
                                   <i class="glyphicon glyphicon-arrow-down" style='font-size:24px;border:1px dashed white;padding:6px;padding-left:20px;padding-right:20px;margin:4px;'></i>
                                   <br> Glisser un fichier ici 
                                   <a ng-click="Assigne(commande,User);GenereFichier(commande.Id_com,contenu)"><br>ou Générer un fichier à partir de la source</a>
+                                 <br /> <a ng-if="contenu.dropable" ng-click="contenu.existe=true" style='color:white'>[refermer]</a>
                                   </p>
                                    <input type='hidden' id='fichier' value="{{contenu.chemin}}{{contenu.fichier}}">
                                    <input type='hidden' id='nomfichier' value="{{contenu.fichier}}">
@@ -140,9 +198,16 @@
                         
                         <span ng-if="contenu.statut_ordre=='new'"> en attente d'impression </span>
                          <span ng-if="contenu.statut_ordre!='new'"> {{contenu.statut_ordre }} </span>
+                          <span ng-if="contenu.receptionne=='oui'"> Receptionné </span>
                         
                        </td>
-                       <td>{{contenu.statut_plancheur}}</td>
+                       <td>
+                       {{contenu.statut_expedition}}
+                       
+                       </td>
+                       <td>
+                       <span ng-if="contenu.chemin">    </span>
+                       </td>
                        
                       </tr>
                     </tbody>
@@ -192,8 +257,14 @@
                                             <td>
                                             {{ activite.quantite}}
                                             </td>
+                                              <td>
+                         {{ activite.qfeuilles}}
+                         </td>
+                           <td>
+                         {{ activite.imprimante}}
+                         </td>
                                             <td>
-                                            {{ activite.activite}}
+                                            {{ activite.activite }}
                                             </td>
                                             </tr>
                                             </tbody>
@@ -216,9 +287,16 @@
                               </p>
                      </div>
                      
-                      <div class="col-lg-3">
+                      <div class="col-lg-2">
                                 <p class="">
-	                                <button ng-click="Assigne(commande,User);EnvoyerBat(commande)" class="btn btn-default">Envoyer le BAT</button>
+	                                <button ng-click="showPaoComment=true" class="btn btn-info">Préparer le BAT</button>
+                                    <div ng-show="showPaoComment" class="alert alert-info">
+                                    Votre commentaire pour le client :<br />
+									<textarea ng-model='pao_comment' class='form-controle' style='margin-bottom:5px;width:320px;min-height:100px;font-size:12px;color:black'></textarea>
+                                    <button ng-click="Assigne(commande,User);EnvoyerBat(commande, pao_comment);showPaoComment=false;" class="btn btn-success">Envoyer le BAT</button>
+                                    
+                                    </div>
+                                    
                                     <button ng-click="miseEnProduction(commande);LoadCommande();" class="btn btn-default">Envoyer en Impression</button>
 
                                     <button ng-if="commande.Canal=='STAN' && commande.BAT !='BATOK'"
@@ -226,10 +304,13 @@
                                   </p>
                                   <p>          
                                             <!--bouton stop impression -->
-                                               <button ng-if="commandeHasJobs(commande)"  ng-click="StopImpression(commande)" class="btn btn-danger">Stop Impression</button>
+                                               <button ng-show="commandeHasJobs(commande)"  ng-click="StopImpression(commande)" class="btn btn-danger">Stop Impression</button>
                                 </p>
                    </div>
-                                
+                              
+                              <div class="col-lg-1">
+                                <button ng-if="commande.BATcourt!='BATOK' " ng-click="setStatutBat(commande.Id_com,'ATT',false,'');LoadCommande();" class="btn btn-info">Att éléments</button>
+                              </div>  
                      
                   </div>
                                                                              
